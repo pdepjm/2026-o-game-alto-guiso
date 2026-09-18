@@ -1,5 +1,7 @@
-### [Nombre del juego]
+### Flor de Quilombo
 
-* Integrante 1
-* Integrante 2
-* Etc...
+* Sofia Bravo
+* Lucia salinas
+* Nicolas Becco
+* Joaquin Zimerman
+* Tobias Charap
