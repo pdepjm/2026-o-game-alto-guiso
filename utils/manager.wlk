@@ -1,0 +1,16 @@
+object assetsManager {
+    method fondoMenu() = "fondoMenu2.png"
+    method fondoMenuAlt() = "fondoMenu1.png"
+    method fondoCesped() = "grass.png"
+    method botonJugar() = "play_botton.png"
+    method botonConfiguracion() = "setting_button.png"
+    method botonSalir() = "exit_button.png"
+    method botonNivel1() = "level1_button.png"
+    method botonVolver() = "exit_button.png"
+    method jugadorAbajo() = "player_down.png"
+    method jugadorArriba() = "player_down.png"
+    method jugadorDerecha() = "player_down.png"
+    method jugadorIzquierda() = "player_down.png"
+    method cerca() = "fence_x.png"
+    method valla() = "fence_x.png"
+}
