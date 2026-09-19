@@ -1,4 +1,5 @@
 import wollok.game.*
+import utils.manager.*
 
 object jugador {
     var imagen = "player_down.png"
@@ -12,7 +13,7 @@ object jugador {
     method imagen() = imagen
 
     method moverArriba(){
-        imagen = "player_down.png"
+        imagen = assetsManager.jugadorArriba()
         self.actualizar()
         game.onTick(0, "mover jugador hacia arriba",{
             posicionY += 2.0
@@ -20,7 +21,7 @@ object jugador {
     }
 
     method moverAbajo(){
-        imagen = "player_down.png"
+        imagen = "player_down.png" // Cambiar por assetsManager
         self.actualizar()
         game.onTick(0, "mover jugador hacia abajo",{ // NO se si esto esta bien jajaj
             posicionY -= 2.0
@@ -28,12 +29,12 @@ object jugador {
     }
 
     method moverDerecha(){
-        imagen = "player_down.png"
+        imagen = "player_down.png" // Cambiar por assetsManager
         self.actualizar()
     }
 
     method moverIzquierda(){
-        imagen = "player_down.png"
+        imagen = "player_down.png" // Cambiar por assetsManager
         self.actualizar()
     }
 
