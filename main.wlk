@@ -1,22 +1,19 @@
 import wollok.game.*
-import screens.mainMenu.*
+import pantallas.navegador.*
 import utils.io.*
+import utils.manager.*
 
 object main {
 
   method iniciar(){
-    game.width(120)
-    game.height(80)
-    game.cellSize(30)
+    game.width(21)
+    game.height(12)
+    game.cellSize(80)
     game.title("Flor de Quilombo")
-    game.boardGround("fondoMenu2.png")
-    menuPrincipal.mostrar()
+    game.boardGround(assetsManager.fondoCesped())
+    navegador.iniciar()
     entradaTeclado.entradasDelTeclado()
 
-    game.start() // Este siempre es lo ultimo que se pone si no no carga lo anterior
+    game.start()
   }
 }
-
-
-
-

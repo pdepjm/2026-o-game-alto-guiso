@@ -1,70 +1,21 @@
 import wollok.game.*
-import screens.mainMenu.*
-import screens.levelSelect.*
-import maps.map1.*
-import maps.player.*
-
+import pantallas.navegador.*
+import juego.direcciones.*
 object entradaTeclado {
-  var pantalla = "menu"
 
   method entradasDelTeclado(){
-    keyboard.j().onPressDo {
-      if (pantalla == "menu") {
-        menuPrincipal.ocultar()
-        niveles.mostrar()
-        pantalla = "niveles"
-      }
-    }
+    keyboard.j().onPressDo { navegador.actual().presionarJugar() }
+    keyboard.v().onPressDo { navegador.actual().presionarVolver() }
+    keyboard.r().onPressDo { navegador.actual().presionarReiniciar() }
+    keyboard.num1().onPressDo { navegador.actual().presionarNivel(1) }
+    keyboard.num2().onPressDo { navegador.actual().presionarNivel(2) }
+
+    keyboard.up().onPressDo { navegador.actual().presionarDireccion(arriba) }
+    keyboard.down().onPressDo { navegador.actual().presionarDireccion(abajo) }
+    keyboard.left().onPressDo { navegador.actual().presionarDireccion(izquierda) }
+    keyboard.right().onPressDo { navegador.actual().presionarDireccion(derecha) }
 
     keyboard.c().onPressDo {}
-
-    keyboard.q().onPressDo {}
-
-    keyboard.num1().onPressDo {
-      if (pantalla == "niveles") {
-        menuPrincipal.ocultar()
-        niveles.ocultar()
-        mapa1.jugar()
-        pantalla = "mapa1"
-      }
-    }
-
-    keyboard.num2().onPressDo {
-      if (pantalla == "niveles") {
-        menuPrincipal.ocultar()
-        niveles.mostrar()
-      }
-    }
-
-    keyboard.v().onPressDo {
-      if (pantalla == "niveles") {
-        niveles.volver()
-        pantalla = "menu"
-      }
-    }
-
-    keyboard.up().onPressDo {
-      if (pantalla == "mapa1") {
-        jugador.moverArriba()
-      }
-    }
-
-    keyboard.down().onPressDo {
-      if (pantalla == "mapa1") {
-        jugador.moverAbajo()
-      }
-    }
-
-    keyboard.left().onPressDo {
-      if (pantalla == "mapa1") {
-        jugador.moverIzquierda()
-      }
-    }
-
-    keyboard.right().onPressDo {
-      if (pantalla == "mapa1") {
-        jugador.moverDerecha()
-      }
-    }
+    keyboard.q().onPressDo { game.stop() }
   }
 }

@@ -1,0 +1,422 @@
+# Explicación del juego
+
+## 1. Qué es el juego
+
+**Flor de Quilombo** es un juego hecho en Wollok en el que un jardinero debe recorrer un jardín y convertir todas las cruces de colores en flores.
+
+El jugador tiene que:
+
+1. Elegir un nivel desde el menú.
+2. Mover al jardinero con las flechas.
+3. Recoger semillas de colores.
+4. Llevar cada semilla hasta una cruz del mismo color.
+5. Repetir el proceso hasta florecer todas las cruces.
+
+El jardinero se mueve deslizándose. Cuando se presiona una flecha, avanza en esa dirección una celda por cada `onTick` hasta encontrar una cerca. Mientras está deslizándose, las nuevas teclas de movimiento se ignoran. Esto hace que cada movimiento sea un recorrido completo de extremo a extremo, en lugar de un movimiento de una sola celda.
+
+Una semilla no desaparece al ser recogida: el jardinero la guarda en la mano, pero el objeto sigue en el tablero. Si se recoge otra semilla, reemplaza a la anterior. Una cruz solo florece cuando recibe una semilla del mismo color. Las cruces de otro color, o una cruz visitada sin semilla, no cambian.
+
+El nivel se gana cuando todas sus cruces están florecidas. En ese momento el jardinero se frena y aparece el mensaje `¡Jardín completo! V para volver`.
+
+## 2. Cómo se inicia el juego
+
+La ejecución comienza en el objeto `main`, ubicado en `main.wlk`.
+
+El método `main.iniciar()` realiza estas tareas:
+
+1. Configura el tamaño del tablero: 21 celdas de ancho por 12 de alto.
+2. Define el tamaño visual de cada celda: 80 píxeles.
+3. Define el título de la ventana.
+4. Coloca el fondo de césped.
+5. Muestra el menú principal mediante `navegador.iniciar()`.
+6. Registra todas las teclas mediante `entradaTeclado.entradasDelTeclado()`.
+7. Llama a `game.start()` para comenzar el juego.
+
+`main` es un objeto, no un programa, así que no se puede ejecutar solo. El programa está en
+`florDeQuilombo.wpgm`, que lo único que hace es llamar a `main.iniciar()`. En VS Code se ejecuta con el botón
+**Run program** que aparece arriba de `program florDeQuilombo`. Desde la consola:
+
+```text
+wollok run florDeQuilombo.florDeQuilombo
+```
+
+## 3. Flujo general de una partida
+
+### 3.1 Menú principal
+
+Al comenzar, `navegador.actual` vale `menuPrincipal`. El menú muestra:
+
+- El fondo del menú.
+- El botón de jugar.
+- El botón de configuración.
+- El botón de salir.
+
+La tecla `J` llama a `menuPrincipal.presionarJugar()`. Ese método le pide al `navegador` que cambie a `selectorDeNiveles`.
+
+La configuración todavía no tiene una acción asociada. La tecla `Q` detiene el juego directamente con `game.stop()`.
+
+### 3.2 Selección de nivel
+
+La pantalla `selectorDeNiveles` muestra los botones de los niveles disponibles. La tecla `1` selecciona el primer mapa y la tecla `2` selecciona el segundo.
+
+Cuando se presiona un número:
+
+1. `entradaTeclado` informa el número a la pantalla actual.
+2. `selectorDeNiveles.presionarNivel(numero)` busca el mapa correspondiente en la lista `mapas`.
+3. `partida.nivel(...)` guarda ese mapa como el nivel actual.
+4. `navegador.irA(partida)` oculta la pantalla de niveles y muestra la partida.
+
+La tecla `V` vuelve al menú principal desde la selección de niveles.
+
+### 3.3 Armado del nivel
+
+Al mostrar `partida`, se ejecuta `partida.armar()`.
+
+El mapa es una lista de strings. Cada carácter representa algo:
+
+| Carácter | Significado |
+| --- | --- |
+| `#` | Cerca |
+| `J` | Posición inicial del jardinero |
+| `R` | Semilla roja |
+| `A` | Semilla azul |
+| `M` | Semilla amarilla |
+| `r` | Cruz roja |
+| `a` | Cruz azul |
+| `m` | Cruz amarilla |
+| Espacio | Celda libre |
+
+`partida.armar()` calcula el tamaño del mapa, lo centra dentro del tablero y recorre cada fila y columna. Para cada carácter llama a `ubicar(letra, posicion)`, que decide qué objeto debe configurarse en esa celda.
+
+Las semillas se agregan a `semillasEnJuego`. Las cruces se toman de un conjunto fijo de seis objetos y se configuran con su posición, su semilla correspondiente y el estado `florecida = false`. Las cercas hacen lo mismo con las 60 vallas disponibles: cada `#` toma la siguiente valla libre, le da su posición y la agrega a `vallasEnJuego`. Además, la posición se guarda en el conjunto `cercas`, que es el que se consulta para saber por dónde no se puede pasar.
+
+Después del armado, `partida.mostrar()` agrega a la pantalla:
+
+- Las vallas del nivel.
+- Las semillas y las cruces.
+- El jardinero, al final, para que se dibuje por encima de los demás elementos.
+
+### 3.4 Movimiento del jardinero
+
+Cuando se presiona una flecha, `entradaTeclado` envía una dirección a la pantalla actual. La pantalla de partida llama a `jardinero.mover(direccion)`.
+
+Si el jardinero no está deslizándose:
+
+1. Guarda la nueva dirección.
+2. Marca `deslizando = true`.
+3. Registra un evento periódico con `game.onTick`.
+
+Cada ejecución de ese evento llama a `jardinero.avanzarUnPaso()`:
+
+1. Calcula la siguiente posición usando la dirección actual.
+2. Consulta a `partida.puedeEntrarA(...)` para saber si hay una cerca.
+3. Si la celda está libre, mueve al jardinero.
+4. Revisa los elementos que están en esa posición.
+5. Permite que cada elemento reaccione al paso del jardinero.
+6. Comprueba si se completó el nivel.
+7. Si hay una cerca, llama a `jardinero.frenar()`.
+
+Frenar cambia `deslizando` a `false` y elimina el evento periódico. Así el jardinero puede recibir una nueva dirección.
+
+### 3.5 Interacción con semillas y cruces
+
+Los elementos del tablero no necesitan que el jardinero conozca su tipo concreto. Cada uno responde al mensaje `pisadoPor(jardinero)`.
+
+- Una semilla llama a `jardinero.recoger(self)`.
+- Una cruz llama a `jardinero.plantarEn(self)`.
+
+El jardinero guarda una referencia a la semilla actual. Al plantar, delega en esa semilla el método `aplicarEn(cruz)`. La semilla le envía `recibir(self)` a la cruz. La cruz compara la semilla recibida con la semilla que necesita y solo se florece si coinciden.
+
+Este diseño permite que las tres semillas compartan el mismo conjunto de mensajes aunque cada una tenga imágenes y letras distintas.
+
+### 3.6 Finalización y reinicio
+
+Después de cada paso, `partida.verificarSiTermino()` comprueba si todas las cruces cumplen `florecida()`.
+
+Si todas están florecidas y el nivel todavía no estaba ganado:
+
+1. Se marca `ganado = true`.
+2. Se frena al jardinero.
+3. Se muestra el mensaje de victoria.
+
+Una vez ganado el nivel, `partida.presionarDireccion(...)` ya no permite iniciar nuevos movimientos.
+
+La tecla `R` llama a `partida.presionarReiniciar()`. El nivel se oculta y se muestra de nuevo, por lo que se vacían y vuelven a construir sus elementos desde el mapa original.
+
+La tecla `V` vuelve a la selección de niveles.
+
+## 4. Archivo por archivo
+
+### `main.wlk`
+
+Contiene el objeto `main`, que es el punto de entrada del juego.
+
+Su método `iniciar()` configura el tablero, el título, el fondo, la pantalla inicial, las entradas del teclado y el arranque de Wollok. No contiene reglas del juego: solo prepara el entorno y conecta los componentes principales.
+
+### `juego/cruces.wlk`
+
+Define seis objetos de cruz: `cruz1` hasta `cruz6`.
+
+Cada cruz tiene:
+
+- Una posición.
+- Una semilla asociada.
+- Un estado que indica si ya floreció.
+- Una imagen que cambia según ese estado.
+- Un comportamiento para reaccionar cuando el jardinero la pisa.
+
+No hay una clase `Cruz`; por eso existen seis objetos equivalentes que `partida` reutiliza al construir un nivel.
+
+### `juego/cercas.wlk`
+
+Define sesenta objetos de valla: `valla1` hasta `valla60`.
+
+Cada valla sabe solo dos cosas: su posición y su imagen. No tiene comportamiento, porque lo único que hace es bloquear el paso, y eso lo decide `partida` con las posiciones que guarda.
+
+Al igual que con las cruces, no hay una clase `Valla`: existen sesenta objetos equivalentes y cada nivel usa los que necesita. El nivel 1 usa 32 y el nivel 2 usa 54, así que un mapa nuevo no puede tener más de 60 `#`.
+
+### `juego/direcciones.wlk`
+
+Define las cuatro direcciones del juego:
+
+- `arriba`
+- `abajo`
+- `izquierda`
+- `derecha`
+
+Cada dirección sabe dos cosas:
+
+1. Cómo calcular la celda siguiente a partir de una posición.
+2. Qué imagen debe mostrar el jardinero mientras avanza en esa dirección.
+
+Esto evita llenar `jardinero` de condiciones distintas para cada flecha.
+
+### `niveles/mapa1.wlk`
+
+Define el objeto `mapa1`, que representa el primer nivel.
+
+El método `mapa()` devuelve una lista de strings. El contenido textual funciona como un plano del nivel: las posiciones de las letras y de los `#` determinan dónde aparecen las entidades y las cercas.
+
+Un mapa no tiene ninguna lógica: es solo el dibujo. Todo lo que hay que hacer con él lo resuelve `partida`.
+
+`niveles/mapa2.wlk` sigue exactamente el mismo contrato: también ofrece `mapa()`, pero describe otro tablero. Por eso no hace falta repetir la explicación de su funcionamiento. Gracias a que los dos entienden el mismo mensaje, `partida` los usa sin saber cuál le toca.
+
+### `juego/partida.wlk`
+
+Es el módulo central de la lógica de una partida.
+
+Sus responsabilidades son:
+
+- Guardar el nivel elegido.
+- Interpretar el mapa.
+- Centrar el mapa en el tablero.
+- Registrar las posiciones de las cercas.
+- Crear las semillas y las cruces del nivel.
+- Determinar si una posición es transitable.
+- Encontrar los elementos de una celda.
+- Mostrar y ocultar los objetos visuales.
+- Comprobar la victoria.
+- Gestionar reinicio y vuelta a la pantalla anterior.
+
+### `juego/jardinero.wlk`
+
+Define el objeto `jardinero`.
+
+Guarda:
+
+- Su posición.
+- Su dirección actual.
+- La semilla que tiene en la mano.
+- Si está deslizándose.
+
+Sus métodos principales son:
+
+- `empezarEn(posicionInicial)`: reinicia su estado en una posición del mapa.
+- `mover(direccion)`: inicia un deslizamiento si no hay otro en curso.
+- `avanzarUnPaso()`: calcula y ejecuta un paso del movimiento.
+- `frenar()`: detiene el evento de movimiento.
+- `recoger(semilla)`: cambia la semilla que lleva.
+- `plantarEn(cruz)`: delega en la semilla la interacción con una cruz.
+
+La imagen del jardinero se obtiene de la dirección actual, por lo que cambia automáticamente al moverse.
+
+### `juego/semillas.wlk`
+
+Define las semillas `semillaRoja`, `semillaAzul` y `semillaAmarilla`.
+
+Cada una conoce:
+
+- La letra que la representa en el mapa.
+- La letra de su cruz correspondiente.
+- La imagen de la semilla.
+- La imagen de la cruz.
+- La imagen de la flor.
+
+Todas implementan los mismos métodos, aunque devuelven datos diferentes según el color. También define `sinSemilla`, que representa la mano vacía del jardinero y no produce ninguna acción al intentar plantar.
+
+### `pantallas/menuPrincipal.wlk`
+
+Define los objetos visuales y comportamientos del menú principal:
+
+- `jugar`
+- `configuracion`
+- `salir`
+- `fondoMenu`
+- `menuPrincipal`
+
+Cada botón tiene una posición y una imagen. `menuPrincipal.mostrar()` agrega sus elementos al juego y `menuPrincipal.ocultar()` los quita.
+
+El botón de jugar cambia a la pantalla de niveles. Las acciones de configuración, volver, selección de nivel, dirección y reinicio están vacías en este menú porque no corresponden a esta pantalla.
+
+### `pantallas/selectorDeNiveles.wlk`
+
+Define la pantalla de selección de niveles.
+
+Contiene los botones `nivel1`, `nivel2` y `volver`, además del objeto `selectorDeNiveles`, que administra la pantalla completa.
+
+La lista `mapas` mantiene la relación entre el número elegido y el mapa que debe cargarse. `presionarNivel(numero)` obtiene el mapa correspondiente, lo guarda en `partida` y navega hacia la partida.
+
+### `pantallas/navegador.wlk`
+
+Centraliza la navegación entre pantallas.
+
+La variable `actual` guarda el objeto que representa la pantalla visible. Todos los objetos de pantalla tienen métodos compatibles, como `mostrar()`, `ocultar()`, `presionarJugar()` y `presionarVolver()`, aunque algunos métodos quedan vacíos según la pantalla.
+
+`irA(pantalla)` siempre hace tres pasos:
+
+1. Oculta la pantalla actual.
+2. Actualiza la variable `actual`.
+3. Muestra la nueva pantalla.
+
+Gracias a esto, el teclado puede enviar mensajes a `navegador.actual()` sin conocer de antemano si está hablando con el menú, el selector o la partida.
+
+### `utils/io.wlk`
+
+Define `entradaTeclado`, que conecta teclas con acciones del juego.
+
+Las teclas no modifican directamente al jardinero ni a las pantallas. En cambio, envían mensajes a la pantalla actual:
+
+| Tecla | Mensaje |
+| --- | --- |
+| `J` | `presionarJugar()` |
+| `V` | `presionarVolver()` |
+| `R` | `presionarReiniciar()` |
+| `1` y `2` | `presionarNivel(numero)` |
+| Flecha arriba | `presionarDireccion(arriba)` |
+| Flecha abajo | `presionarDireccion(abajo)` |
+| Flecha izquierda | `presionarDireccion(izquierda)` |
+| Flecha derecha | `presionarDireccion(derecha)` |
+| `Q` | Detener el juego |
+
+La tecla `C` está registrada, pero todavía no tiene comportamiento.
+
+### `utils/manager.wlk`
+
+Define `assetsManager`, un único lugar desde el que se obtienen los nombres de las imágenes.
+
+Contiene métodos para:
+
+- Fondos.
+- Botones del menú y de selección de niveles.
+- Imágenes del jardinero.
+- Semillas.
+- Cruces.
+- Flores.
+- Cercas.
+
+Centralizar los nombres de los assets permite cambiar una imagen sin tener que buscar su nombre en toda la lógica del juego.
+
+### `tests/jardinero.wtest`
+
+Prueba el movimiento y las reglas principales del jardinero usando un mapa pequeño creado dentro del test.
+
+Comprueba que:
+
+- El jardinero se desliza hasta una cerca.
+- Recoge semillas.
+- No planta sin semilla.
+- Planta una cruz del mismo color.
+- No planta una cruz de otro color.
+- Una semilla nueva reemplaza a la anterior.
+- La semilla permanece en el tablero.
+- La victoria ocurre solo después de plantar todas las cruces.
+- El jardinero deja de moverse al ganar.
+- Reiniciar devuelve el nivel a su estado inicial.
+
+El método `deslizar(direccion)` simula manualmente varios pasos porque los eventos `onTick` no avanzan automáticamente durante los tests.
+
+### `tests/navegacion.wtest`
+
+Prueba la navegación entre el menú principal, el selector de niveles y la partida.
+
+Comprueba que:
+
+- El juego comienza en el menú.
+- `J` lleva al selector.
+- Las flechas no mueven al jardinero desde el menú.
+- Se puede elegir el nivel 2.
+- `V` vuelve desde una partida al selector.
+- `V` vuelve desde el selector al menú.
+- Cada mapa crea la cantidad esperada de cruces.
+
+### `README.md`
+
+Es la guía breve del proyecto. Contiene los nombres del equipo, una descripción resumida del juego, los controles, el comando de ejecución y el formato de los mapas.
+
+Este archivo sirve como referencia rápida. Este documento (`EXPLICACION.md`) desarrolla con más detalle la arquitectura y el funcionamiento interno.
+
+### `package.json`
+
+Contiene la información básica del proyecto Wollok:
+
+- Nombre del proyecto.
+- Versión.
+- Carpeta de recursos.
+- Versión de Wollok.
+- Autor.
+- Licencia.
+
+No contiene la lógica del juego.
+
+## 5. Carpeta `assets`
+
+Contiene las imágenes utilizadas por los objetos del juego, agrupadas en subcarpetas: `Fondos`, `UI`, `Jardinero`, `Semillas`, `Cruces`, `Flores` y `Cercas`.
+
+Los archivos de código no dibujan estas imágenes directamente: piden su nombre a `assetsManager`. El nombre incluye la subcarpeta, por ejemplo `"Semillas/red_seed.png"`. Como `assetsManager` es el único que conoce esos nombres, mover una imagen de carpeta se arregla tocando un solo archivo.
+
+## 6. Relación entre los módulos
+
+La relación principal puede resumirse así:
+
+```text
+florDeQuilombo.wpgm
+└── llama a main.iniciar()
+
+main
+├── configura game
+├── inicia el navegador
+└── registra entradaTeclado
+
+entradaTeclado
+└── envía mensajes a navegador.actual()
+
+navegador
+├── menuPrincipal
+├── selectorDeNiveles
+└── partida
+
+partida
+├── interpreta mapa1 o mapa2
+├── configura jardinero
+├── configura semillas
+├── configura cruces
+├── configura vallas
+└── controla la victoria
+
+jardinero
+├── usa direcciones
+├── consulta las reglas de partida
+└── interactúa con semillas y cruces
+```
+
+La idea más importante es que cada módulo tenga una responsabilidad concreta: los mapas describen datos, las semillas y cruces resuelven sus propias interacciones, `partida` administra el tablero, `jardinero` administra el movimiento, las pantallas administran la navegación y `entradaTeclado` conecta el teclado con esas acciones.

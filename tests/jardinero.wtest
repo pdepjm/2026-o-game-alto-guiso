@@ -1,0 +1,106 @@
+import wollok.game.*
+import juego.partida.*
+import juego.jardinero.*
+import juego.direcciones.*
+import juego.semillas.*
+
+object mapaDePrueba {
+  method mapa() = [
+    "#######",
+    "#J r R#",
+    "#     #",
+    "#A a  #",
+    "#######"
+  ]
+}
+
+describe "El jardinero en el jardín" {
+
+  method initialize() {
+    game.width(7)
+    game.height(5)
+    partida.nivel(mapaDePrueba)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => jardinero.avanzarUnPaso() })
+  }
+
+  method cruzRoja() = partida.cruces().first()
+  method cruzAzul() = partida.cruces().last()
+
+  test "el jardinero se desliza hasta chocar con una cerca" {
+    self.deslizar(derecha)
+    assert.equals(game.at(5, 3), jardinero.position())
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "al pasar por una semilla la recoge" {
+    self.deslizar(derecha)
+    assert.equals(semillaRoja, jardinero.semillaEnMano())
+  }
+
+  test "sin semilla, pasar por una cruz no hace nada" {
+    self.deslizar(derecha)
+    assert.notThat(self.cruzRoja().florecida())
+  }
+
+  test "con la semilla del mismo color, la cruz se convierte en flor" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    assert.that(self.cruzRoja().florecida())
+  }
+
+  test "con una semilla de otro color, la cruz no florece" {
+    self.deslizar(abajo)
+    self.deslizar(arriba)
+    self.deslizar(derecha)
+    assert.notThat(self.cruzRoja().florecida())
+  }
+
+  test "agarrar otra semilla reemplaza la que tenía en la mano" {
+    self.deslizar(derecha)
+    self.deslizar(abajo)
+    self.deslizar(izquierda)
+    assert.equals(semillaAzul, jardinero.semillaEnMano())
+  }
+
+  test "la semilla queda en su lugar después de recogerla" {
+    self.deslizar(derecha)
+    assert.that(partida.elementosEn(game.at(5, 3)).contains(semillaRoja))
+  }
+
+  test "no se gana hasta plantar todas las flores" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    assert.notThat(partida.ganado())
+  }
+
+  test "al plantar todas las flores se gana el nivel" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    self.deslizar(abajo)
+    self.deslizar(derecha)
+    assert.that(partida.ganado())
+  }
+
+  test "una vez ganado, el jardinero no se mueve más" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    self.deslizar(abajo)
+    self.deslizar(derecha)
+    partida.presionarDireccion(izquierda)
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "reiniciar deja el nivel como al principio" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    partida.presionarReiniciar()
+    assert.equals(game.at(1, 3), jardinero.position())
+    assert.equals(sinSemilla, jardinero.semillaEnMano())
+    assert.notThat(self.cruzRoja().florecida())
+  }
+}

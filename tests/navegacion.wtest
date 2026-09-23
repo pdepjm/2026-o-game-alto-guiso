@@ -1,0 +1,62 @@
+import wollok.game.*
+import pantallas.navegador.*
+import pantallas.menuPrincipal.*
+import pantallas.selectorDeNiveles.*
+import juego.partida.*
+import niveles.mapa1.*
+import niveles.mapa2.*
+import juego.jardinero.*
+import juego.direcciones.*
+
+describe "Navegación entre pantallas" {
+
+  method initialize() {
+    game.width(21)
+    game.height(12)
+    navegador.iniciar()
+  }
+
+  test "el juego arranca en el menú principal" {
+    assert.equals(menuPrincipal, navegador.actual())
+  }
+
+  test "desde el menú, J lleva al selector de niveles" {
+    navegador.actual().presionarJugar()
+    assert.equals(selectorDeNiveles, navegador.actual())
+  }
+
+  test "en el menú las flechas no hacen nada" {
+    navegador.actual().presionarDireccion(derecha)
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "desde el selector se elige el nivel con su número" {
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(2)
+    assert.equals(partida, navegador.actual())
+    assert.equals(mapa2, partida.nivel())
+  }
+
+  test "desde un nivel, V vuelve al selector y saca el nivel de la pantalla" {
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(1)
+    navegador.actual().presionarVolver()
+    assert.equals(selectorDeNiveles, navegador.actual())
+    assert.notThat(game.hasVisual(jardinero))
+  }
+
+  test "desde el selector, V vuelve al menú" {
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarVolver()
+    assert.equals(menuPrincipal, navegador.actual())
+  }
+
+  test "cada nivel usa la cantidad de cruces de su mapa" {
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(1)
+    assert.equals(2, partida.cruces().size())
+    navegador.actual().presionarVolver()
+    navegador.actual().presionarNivel(2)
+    assert.equals(6, partida.cruces().size())
+  }
+}
