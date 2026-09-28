@@ -12,6 +12,7 @@ object semillaRoja {
 
     method pisadoPor(jardinero) { jardinero.recoger(self) }
     method aplicarEn(cruz) { cruz.recibir(self) }
+    method esTraspasable() = true
 }
 
 object semillaAzul {
@@ -25,6 +26,7 @@ object semillaAzul {
 
     method pisadoPor(jardinero) { jardinero.recoger(self) }
     method aplicarEn(cruz) { cruz.recibir(self) }
+    method esTraspasable() = true
 }
 
 object semillaAmarilla {
@@ -38,8 +40,10 @@ object semillaAmarilla {
 
     method pisadoPor(jardinero) { jardinero.recoger(self) }
     method aplicarEn(cruz) { cruz.recibir(self) }
+    method esTraspasable() = true
 }
 
 object sinSemilla {
     method aplicarEn(cruz) {}
+    method esTraspasable() = true
 }

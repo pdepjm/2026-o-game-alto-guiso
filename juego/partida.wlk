@@ -6,16 +6,15 @@ import juego.semillas.*
 import juego.cruces.*
 import niveles.mapa1.*
 import juego.cercas.*
+import juego.bloques.*
 
 object partida {
     var nivel = mapa1
     var ganado = false
-    const cercas = #{}
     const semillasEnJuego = []
     const cruces = []
     const vallasEnJuego = []
     const semillas = [semillaRoja, semillaAzul, semillaAmarilla]
-    const crucesDisponibles = [cruz1, cruz2, cruz3, cruz4, cruz5, cruz6]
 
     method nivel() = nivel
     method nivel(unNivel) { nivel = unNivel }
@@ -43,7 +42,10 @@ object partida {
 
     method ubicar(letra, posicion) {
         if (letra == "#") self.ponerValla(posicion)
+        if (letra == "P") game.addVisual(new Piedra(position = posicion))
+        if (letra == "B") game.addVisual(new CharcoDeBarro(position = posicion))
         if (letra == "J") jardinero.empezarEn(posicion)
+        
         semillas.filter({ semilla => semilla.letra() == letra }).forEach({ semilla => self.ponerSemilla(semilla, posicion) })
         semillas.filter({ semilla => semilla.letraCruz() == letra }).forEach({ semilla => self.ponerCruz(semilla, posicion) })
     }
@@ -54,20 +56,19 @@ object partida {
     }
 
     method ponerValla(posicion) {
-        cercas.add(posicion)
         const nuevaValla = new Valla(position = posicion)
         vallasEnJuego.add(nuevaValla)
     }
 
-    method ponerCruz(semilla, posicion) {
-        const cruz = crucesDisponibles.get(cruces.size())
-        cruz.position(posicion)
-        cruz.semilla(semilla)
-        cruz.florecida(false)
-        cruces.add(cruz)
+    method ponerCruz(semillaEsperada, posicion) {
+        const nuevaCruz = new Cruz(position = posicion, semilla = semillaEsperada)
+        cruces.add(nuevaCruz)
     }
 
-    method puedeEntrarA(posicion) = !cercas.contains(posicion)
+
+    method puedeEntrarA(posicion) {
+        return game.getObjectsIn(posicion).all({ elemento => elemento.esTransportable() })
+    }
 
     method elementos() = semillasEnJuego + cruces
 
