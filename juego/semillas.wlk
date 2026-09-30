@@ -1,49 +1,52 @@
 import wollok.game.*
 import utils.manager.*
 
-object semillaRoja {
+// Las tres semillas hacen exactamente lo mismo: lo único que cambia son sus letras
+// en el mapa y sus imágenes. Por eso son instancias de una misma clase y no tres
+// objetos con el código repetido.
+class Semilla {
+    const property letra
+    const property letraCruz
+    const property image
+    const property imagenCruz
+    const property imagenFlor
     var property position = game.origin()
 
-    method letra() = "R"
-    method letraCruz() = "r"
-    method image() = assetsManager.semillaRoja()
-    method imagenCruz() = assetsManager.cruzRoja()
-    method imagenFlor() = assetsManager.florRoja()
-
+    // El jardinero la levanta al pasar por encima
     method pisadoPor(jardinero) { jardinero.recoger(self) }
+
+    // Plantarse es cosa de la semilla: la cruz después decide si es de su color
     method aplicarEn(cruz) { cruz.recibir(self) }
+
     method esTraspasable() = true
 }
 
-object semillaAzul {
-    var property position = game.origin()
+const semillaRoja = new Semilla(
+    letra = "R",
+    letraCruz = "r",
+    image = assetsManager.semillaRoja(),
+    imagenCruz = assetsManager.cruzRoja(),
+    imagenFlor = assetsManager.florRoja()
+)
 
-    method letra() = "A"
-    method letraCruz() = "a"
-    method image() = assetsManager.semillaAzul()
-    method imagenCruz() = assetsManager.cruzAzul()
-    method imagenFlor() = assetsManager.florAzul()
+const semillaAzul = new Semilla(
+    letra = "A",
+    letraCruz = "a",
+    image = assetsManager.semillaAzul(),
+    imagenCruz = assetsManager.cruzAzul(),
+    imagenFlor = assetsManager.florAzul()
+)
 
-    method pisadoPor(jardinero) { jardinero.recoger(self) }
-    method aplicarEn(cruz) { cruz.recibir(self) }
-    method esTraspasable() = true
-}
+const semillaAmarilla = new Semilla(
+    letra = "M",
+    letraCruz = "m",
+    image = assetsManager.semillaAmarilla(),
+    imagenCruz = assetsManager.cruzAmarilla(),
+    imagenFlor = assetsManager.florAmarilla()
+)
 
-object semillaAmarilla {
-    var property position = game.origin()
-
-    method letra() = "M"
-    method letraCruz() = "m"
-    method image() = assetsManager.semillaAmarilla()
-    method imagenCruz() = assetsManager.cruzAmarilla()
-    method imagenFlor() = assetsManager.florAmarilla()
-
-    method pisadoPor(jardinero) { jardinero.recoger(self) }
-    method aplicarEn(cruz) { cruz.recibir(self) }
-    method esTraspasable() = true
-}
-
+// La mano vacía del jardinero. Es un concepto único en el juego, así que es un objeto
+// y no una clase. Al no hacer nada en aplicarEn, nos evita preguntar "¿tiene semilla?".
 object sinSemilla {
     method aplicarEn(cruz) {}
-    method esTraspasable() = true
 }

@@ -1,20 +1,23 @@
 import wollok.game.*
 import juego.semillas.*
 
-class Cruz{
+// Los lugares marcados donde hay que plantar. Cada cruz sabe qué semilla le corresponde:
+// si el jardinero pasa con esa semilla, se convierte en la flor de ese color.
+class Cruz {
     var property position
     var property semilla
     var property florecida = false
 
-    // Interfaz para el movimiento del jardinero
-    method esTraspasable() = true
-    
-    // El jardinero le  manda este mensaje al pisar la celda
-    // Como la cruz no frena ni quita items al pisarla (por ahora), el metodo queda vacio,
-    // pero debe existir para respetar el contrato y que no rompa el juego
-    method pisadoPor(jardinero) {}
+    // La imagen sale de la semilla que le toca, y cambia sola al florecer
+    method image() = if (florecida) semilla.imagenFlor() else semilla.imagenCruz()
 
-    // Este metodo es llamado por la semilla cuando el jardinero planta
+    // Se puede caminar por encima: la cruz no frena al jardinero
+    method esTraspasable() = true
+
+    // Al pisarla, le pide al jardinero que plante lo que tenga en la mano
+    method pisadoPor(jardinero) { jardinero.plantarEn(self) }
+
+    // Se lo manda la semilla al plantar. Solo florece si es la de su color
     method recibir(semillaPlantada) {
         if (semillaPlantada == semilla) {
             florecida = true

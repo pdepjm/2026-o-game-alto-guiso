@@ -25,4 +25,8 @@ object assetsManager {
     method florAzul() = "Flores/blue_flower.png"
     method florAmarilla() = "Flores/yellow_flower.png"
     method valla() = "Cercas/fence_x1.png"
+
+    // Todavía no están dibujadas: hay que agregar los dos .png en assets/Obstaculos/
+    method piedra() = "Obstaculos/piedra.png"
+    method barro() = "Obstaculos/barro.png"
 }

@@ -88,13 +88,11 @@ El mapa es una lista de strings. Cada carácter representa algo:
 
 `partida.armar()` calcula el tamaño del mapa, lo centra dentro del tablero y recorre cada fila y columna. Para cada carácter llama a `ubicar(letra, posicion)`, que decide qué objeto debe configurarse en esa celda.
 
-Las semillas se agregan a `semillasEnJuego`. Las cruces se toman de un conjunto fijo de seis objetos y se configuran con su posición, su semilla correspondiente y el estado `florecida = false`. Las cercas hacen lo mismo con las 60 vallas disponibles: cada `#` toma la siguiente valla libre, le da su posición y la agrega a `vallasEnJuego`. Además, la posición se guarda en el conjunto `cercas`, que es el que se consulta para saber por dónde no se puede pasar.
+Por cada carácter se crea el elemento que corresponde con `new`: `new Valla(...)` para un `#`, `new Cruz(...)` para una cruz, `new Piedra(...)` o `new CharcoDeBarro(...)` para los obstáculos. Las semillas no se crean: ya existen las tres y solo se les cambia la posición.
 
-Después del armado, `partida.mostrar()` agrega a la pantalla:
+Todo lo que se pone en el tablero va a una única lista, `elementosDelNivel`. Las cruces además se guardan aparte en la lista `cruces`, que es la que se mira para saber si ya está todo plantado.
 
-- Las vallas del nivel.
-- Las semillas y las cruces.
-- El jardinero, al final, para que se dibuje por encima de los demás elementos.
+Después del armado, `partida.mostrar()` agrega a la pantalla todos los elementos de esa lista y, al final, el jardinero, para que se dibuje por encima de los demás.
 
 ### 3.4 Movimiento del jardinero
 
@@ -155,25 +153,29 @@ Su método `iniciar()` configura el tablero, el título, el fondo, la pantalla i
 
 ### `juego/cruces.wlk`
 
-Define seis objetos de cruz: `cruz1` hasta `cruz6`.
-
-Cada cruz tiene:
+Define la clase `Cruz`. Cada instancia tiene:
 
 - Una posición.
-- Una semilla asociada.
+- La semilla que le corresponde.
 - Un estado que indica si ya floreció.
 - Una imagen que cambia según ese estado.
-- Un comportamiento para reaccionar cuando el jardinero la pisa.
+- El comportamiento para reaccionar cuando el jardinero la pisa.
 
-No hay una clase `Cruz`; por eso existen seis objetos equivalentes que `partida` reutiliza al construir un nivel.
+`partida` crea una cruz por cada `r`, `a` o `m` del mapa con `new Cruz(...)`. Antes había seis objetos repetidos (`cruz1` a `cruz6`) y un límite de seis cruces por nivel: con la clase, ese límite desapareció.
 
-### `juego/cercas.wlk`
+### `juego/bloques.wlk`
 
-Define sesenta objetos de valla: `valla1` hasta `valla60`.
+Define los elementos del jardín que no son ni semillas ni cruces, los tres como clases:
 
-Cada valla sabe solo dos cosas: su posición y su imagen. No tiene comportamiento, porque lo único que hace es bloquear el paso, y eso lo decide `partida` con las posiciones que guarda.
+- `Valla`: la cerca que rodea el jardín y arma el laberinto. Bloquea el paso.
+- `Piedra`: bloquea el paso igual que una valla, pero en el medio del jardín.
+- `CharcoDeBarro`: se puede pisar, pero al hacerlo el jardinero pierde la semilla que llevaba en la mano.
 
-Al igual que con las cruces, no hay una clase `Valla`: existen sesenta objetos equivalentes y cada nivel usa los que necesita. El nivel 1 usa 32 y el nivel 2 usa 54, así que un mapa nuevo no puede tener más de 60 `#`.
+Las tres entienden los mismos mensajes que el resto de los elementos (`position()`, `image()`, `esTraspasable()` y `pisadoPor(jardinero)`), así que el jardinero las trata igual que a todo lo demás.
+
+Están juntas en un mismo archivo porque cumplen el mismo papel dentro del tablero: la valla y la piedra se diferencian solo en dónde aparecen, y el charco comparte con ellas el mismo contrato.
+
+Antes de usar clases, las vallas eran sesenta objetos repetidos (`valla1` a `valla60`) y ningún mapa podía tener más de sesenta `#`. La piedra y el charco se colocan con las letras `P` y `B`, que todavía no se usan en los niveles porque faltan sus imágenes.
 
 ### `juego/direcciones.wlk`
 
@@ -210,9 +212,8 @@ Sus responsabilidades son:
 - Guardar el nivel elegido.
 - Interpretar el mapa.
 - Centrar el mapa en el tablero.
-- Registrar las posiciones de las cercas.
-- Crear las semillas y las cruces del nivel.
-- Determinar si una posición es transitable.
+- Crear los elementos del nivel (vallas, cruces, piedras y charcos) y ubicar las semillas.
+- Determinar si una posición es transitable, preguntándole a los elementos que están ahí.
 - Encontrar los elementos de una celda.
 - Mostrar y ocultar los objetos visuales.
 - Comprobar la victoria.
@@ -242,7 +243,7 @@ La imagen del jardinero se obtiene de la dirección actual, por lo que cambia au
 
 ### `juego/semillas.wlk`
 
-Define las semillas `semillaRoja`, `semillaAzul` y `semillaAmarilla`.
+Define la clase `Semilla` y sus tres instancias: `semillaRoja`, `semillaAzul` y `semillaAmarilla`. Las tres se comportan igual, así que el comportamiento está escrito una sola vez en la clase y cada instancia solo cambia sus valores.
 
 Cada una conoce:
 
@@ -256,15 +257,9 @@ Todas implementan los mismos métodos, aunque devuelven datos diferentes según 
 
 ### `pantallas/menuPrincipal.wlk`
 
-Define los objetos visuales y comportamientos del menú principal:
+Define el objeto `fondoMenu`, que tapa el césped, y el objeto `menuPrincipal`, que es la pantalla.
 
-- `jugar`
-- `configuracion`
-- `salir`
-- `fondoMenu`
-- `menuPrincipal`
-
-Cada botón tiene una posición y una imagen. `menuPrincipal.mostrar()` agrega sus elementos al juego y `menuPrincipal.ocultar()` los quita.
+Los tres botones (jugar, configuración y salir) son instancias de la clase `Boton` (`pantallas/boton.wlk`) y viven en una lista adentro de la pantalla. `menuPrincipal.mostrar()` recorre esa lista y los agrega al juego; `ocultar()` los quita.
 
 El botón de jugar cambia a la pantalla de niveles. Las acciones de configuración, volver, selección de nivel, dirección y reinicio están vacías en este menú porque no corresponden a esta pantalla.
 
@@ -272,7 +267,7 @@ El botón de jugar cambia a la pantalla de niveles. Las acciones de configuraci�
 
 Define la pantalla de selección de niveles.
 
-Contiene los botones `nivel1`, `nivel2` y `volver`, además del objeto `selectorDeNiveles`, que administra la pantalla completa.
+Contiene el objeto `selectorDeNiveles`, que administra la pantalla completa, con sus tres botones (nivel 1, nivel 2 y volver) como instancias de `Boton`.
 
 La lista `mapas` mantiene la relación entre el número elegido y el mapa que debe cargarse. `presionarNivel(numero)` obtiene el mapa correspondiente, lo guarda en `partida` y navega hacia la partida.
 
@@ -344,6 +339,12 @@ Comprueba que:
 - Reiniciar devuelve el nivel a su estado inicial.
 
 El método `deslizar(direccion)` simula manualmente varios pasos porque los eventos `onTick` no avanzan automáticamente durante los tests.
+
+El mismo archivo tiene un segundo `describe`, con otro mapa de prueba, para los obstáculos:
+
+- La piedra frena al jardinero igual que una cerca.
+- El charco de barro le arruina la semilla que llevaba.
+- El charco no lo frena.
 
 ### `tests/navegacion.wtest`
 

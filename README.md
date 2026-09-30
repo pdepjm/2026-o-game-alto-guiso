@@ -45,8 +45,10 @@ Cada nivel es un objeto en `niveles/` con un `mapa()` dibujado con texto:
 | `#` | cerca |
 | `J` | donde empieza el jardinero |
 | `R` `A` `M` | semilla roja, azul, amarilla |
-| `r` `a` `m` | cruz roja, azul, amarilla (máximo 6 cruces por nivel) |
+| `r` `a` `m` | cruz roja, azul, amarilla |
+| `P` | piedra (bloquea el paso) |
+| `B` | charco de barro (se puede pisar, pero arruina la semilla) |
 
-Las cruces y las cercas salen de objetos que ya existen y se reutilizan en cada nivel: hay 6 cruces
-(`juego/cruces.wlk`) y 60 cercas (`juego/cercas.wlk`). Un mapa no puede tener más de 6 `r` `a` `m`
-ni más de 60 `#`.
+Las cercas, las cruces, las piedras y los charcos son instancias de sus clases, así que un mapa
+puede tener todas las que haga falta. La `P` y la `B` funcionan, pero todavía no tienen imagen
+(`assets/Obstaculos/piedra.png` y `barro.png`), así que por ahora no se usan en los niveles.

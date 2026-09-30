@@ -5,27 +5,34 @@ import juego.jardinero.*
 import juego.semillas.*
 import juego.cruces.*
 import niveles.mapa1.*
-import juego.cercas.*
 import juego.bloques.*
 
 object partida {
     var nivel = mapa1
     var ganado = false
-    const semillasEnJuego = []
+
+    // Todo lo que está puesto en el tablero: vallas, semillas, cruces, piedras y charcos.
+    // Es una sola lista para que el jardinero le pueda preguntar a cualquiera y para que
+    // al cambiar de nivel se saquen todos de la pantalla.
+    const elementosDelNivel = []
+
+    // Las cruces del nivel, para saber cuándo está todo plantado. Son las mismas que
+    // están en elementosDelNivel, solo que acá las tenemos a mano.
     const cruces = []
-    const vallasEnJuego = []
+
     const semillas = [semillaRoja, semillaAzul, semillaAmarilla]
 
     method nivel() = nivel
     method nivel(unNivel) { nivel = unNivel }
     method ganado() = ganado
     method cruces() = cruces
+    method elementos() = elementosDelNivel
+
+    // ----- Armado del nivel -----
 
     method armar() {
-        cercas.clear()
-        semillasEnJuego.clear()
+        elementosDelNivel.clear()
         cruces.clear()
-        vallasEnJuego.clear()
         ganado = false
         const filas = nivel.mapa()
         const alto = filas.size()
@@ -41,38 +48,33 @@ object partida {
     }
 
     method ubicar(letra, posicion) {
-        if (letra == "#") self.ponerValla(posicion)
-        if (letra == "P") game.addVisual(new Piedra(position = posicion))
-        if (letra == "B") game.addVisual(new CharcoDeBarro(position = posicion))
+        if (letra == "#") self.agregar(new Valla(position = posicion))
+        if (letra == "P") self.agregar(new Piedra(position = posicion))
+        if (letra == "B") self.agregar(new CharcoDeBarro(position = posicion))
         if (letra == "J") jardinero.empezarEn(posicion)
-        
         semillas.filter({ semilla => semilla.letra() == letra }).forEach({ semilla => self.ponerSemilla(semilla, posicion) })
         semillas.filter({ semilla => semilla.letraCruz() == letra }).forEach({ semilla => self.ponerCruz(semilla, posicion) })
     }
 
+    method agregar(elemento) { elementosDelNivel.add(elemento) }
+
     method ponerSemilla(semilla, posicion) {
         semilla.position(posicion)
-        semillasEnJuego.add(semilla)
-    }
-
-    method ponerValla(posicion) {
-        const nuevaValla = new Valla(position = posicion)
-        vallasEnJuego.add(nuevaValla)
+        self.agregar(semilla)
     }
 
     method ponerCruz(semillaEsperada, posicion) {
         const nuevaCruz = new Cruz(position = posicion, semilla = semillaEsperada)
         cruces.add(nuevaCruz)
+        self.agregar(nuevaCruz)
     }
 
+    // ----- Reglas del tablero (las consulta el jardinero) -----
 
-    method puedeEntrarA(posicion) {
-        return game.getObjectsIn(posicion).all({ elemento => elemento.esTransportable() })
-    }
+    // Cada elemento decide si se lo puede atravesar: las vallas y las piedras no, el resto sí
+    method puedeEntrarA(posicion) = self.elementosEn(posicion).all({ elemento => elemento.esTraspasable() })
 
-    method elementos() = semillasEnJuego + cruces
-
-    method elementosEn(posicion) = self.elementos().filter({ elemento => elemento.position() == posicion })
+    method elementosEn(posicion) = elementosDelNivel.filter({ elemento => elemento.position() == posicion })
 
     method todoPlantado() = cruces.all({ cruz => cruz.florecida() })
 
@@ -86,17 +88,17 @@ object partida {
         game.say(jardinero, "¡Jardín completo! V para volver")
     }
 
+    // ----- Pantalla -----
+
     method mostrar() {
         self.armar()
-        vallasEnJuego.forEach({ valla => game.addVisual(valla) })
-        self.elementos().forEach({ elemento => game.addVisual(elemento) })
-        game.addVisual(jardinero)
+        elementosDelNivel.forEach({ elemento => game.addVisual(elemento) })
+        game.addVisual(jardinero) // último, para que se dibuje arriba de todo
     }
 
     method ocultar() {
         jardinero.frenar()
-        vallasEnJuego.forEach({ valla => game.removeVisual(valla) })
-        self.elementos().forEach({ elemento => game.removeVisual(elemento) })
+        elementosDelNivel.forEach({ elemento => game.removeVisual(elemento) })
         game.removeVisual(jardinero)
     }
 
