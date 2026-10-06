@@ -6,6 +6,8 @@ import juego.semillas.*
 import juego.cruces.*
 import niveles.mapa1.*
 import juego.bloques.*
+import juego.direcciones.*
+import juego.escalaTablero.*
 
 object partida {
     var nivel = mapa1
@@ -37,11 +39,14 @@ object partida {
         const filas = nivel.mapa()
         const alto = filas.size()
         const ancho = filas.first().size()
-        const origenX = (game.width() - ancho).div(2)
-        const origenY = (game.height() - alto).div(2)
+        const origenX = (escalaTablero.anchoEnCeldas() - ancho).div(2) * escalaTablero.factor()
+        const origenY = (escalaTablero.altoEnCeldas() - alto).div(2) * escalaTablero.factor()
         (0 .. alto - 1).forEach({ fila =>
             (0 .. ancho - 1).forEach({ columna =>
-                const posicion = game.at(origenX + columna, origenY + alto - 1 - fila)
+                const posicion = game.at(
+                    origenX + columna * escalaTablero.factor(),
+                    origenY + (alto - 1 - fila) * escalaTablero.factor()
+                )
                 self.ubicar(filas.get(fila).charAt(columna), posicion)
             })
         })
@@ -51,6 +56,10 @@ object partida {
         if (letra == "#") self.agregar(new Valla(position = posicion))
         if (letra == "P") self.agregar(new Piedra(position = posicion))
         if (letra == "B") self.agregar(new CharcoDeBarro(position = posicion))
+        if (letra == "D") self.agregar(new Esquina(position = posicion, giro = giroDerecha))
+        if (letra == "I") self.agregar(new Esquina(position = posicion, giro = giroIzquierda))
+        if (letra == "T") self.agregar(new Esquina(position = posicion, giro = giroIzquierdaSuperiorDerecha))
+        if (letra == "O") self.agregar(new Esquina(position = posicion, giro = giroIzquierdaInferiorDerecha))
         if (letra == "J") jardinero.empezarEn(posicion)
         semillas.filter({ semilla => semilla.letra() == letra }).forEach({ semilla => self.ponerSemilla(semilla, posicion) })
         semillas.filter({ semilla => semilla.letraCruz() == letra }).forEach({ semilla => self.ponerCruz(semilla, posicion) })
@@ -94,12 +103,14 @@ object partida {
         self.armar()
         elementosDelNivel.forEach({ elemento => game.addVisual(elemento) })
         game.addVisual(jardinero) // último, para que se dibuje arriba de todo
+        game.addVisual(bolsaDeSemillas)
     }
 
     method ocultar() {
         jardinero.frenar()
         elementosDelNivel.forEach({ elemento => game.removeVisual(elemento) })
         game.removeVisual(jardinero)
+        game.removeVisual(bolsaDeSemillas)
     }
 
     method presionarDireccion(direccion) {

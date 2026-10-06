@@ -1,21 +1,58 @@
 import utils.manager.*
+import juego.escalaTablero.*
 
 object arriba {
-    method siguiente(posicion) = posicion.up(1)
+    method siguiente(posicion) = posicion.up(escalaTablero.factor())
+    method siguienteSubcelda(posicion) = posicion.up(1)
     method imagenJardinero() = assetsManager.jardineroArriba()
+    method girarDerecha() = derecha
+    method girarIzquierda() = izquierda
+    method opuesta() = abajo
 }
 
 object abajo {
-    method siguiente(posicion) = posicion.down(1)
+    method siguiente(posicion) = posicion.down(escalaTablero.factor())
+    method siguienteSubcelda(posicion) = posicion.down(1)
     method imagenJardinero() = assetsManager.jardineroAbajo()
+    method girarDerecha() = izquierda
+    method girarIzquierda() = derecha
+    method opuesta() = arriba
 }
 
 object izquierda {
-    method siguiente(posicion) = posicion.left(1)
+    method siguiente(posicion) = posicion.left(escalaTablero.factor())
+    method siguienteSubcelda(posicion) = posicion.left(1)
     method imagenJardinero() = assetsManager.jardineroIzquierda()
+    method girarDerecha() = arriba
+    method girarIzquierda() = abajo
+    method opuesta() = derecha
 }
 
 object derecha {
-    method siguiente(posicion) = posicion.right(1)
+    method siguiente(posicion) = posicion.right(escalaTablero.factor())
+    method siguienteSubcelda(posicion) = posicion.right(1)
     method imagenJardinero() = assetsManager.jardineroDerecha()
+    method girarDerecha() = abajo
+    method girarIzquierda() = arriba
+    method opuesta() = izquierda
+}
+
+object giroDerecha {
+    method aplicar(direccion) = direccion.girarDerecha()
+    method imagen() = assetsManager.esquinaDerecha()
+}
+
+object giroIzquierda {
+    method aplicar(direccion) = direccion.girarIzquierda()
+    method imagen() = assetsManager.esquinaIzquierda()
+}
+
+object giroIzquierdaSuperiorDerecha {
+    method aplicar(direccion) = giroIzquierda.aplicar(direccion)
+    method imagen() = assetsManager.esquinaDerecha()
+}
+
+object giroIzquierdaInferiorDerecha {
+    method aplicar(direccion) = giroIzquierda.aplicar(direccion)
+    method imagen() = assetsManager.esquinaInferiorDerecha()
 }

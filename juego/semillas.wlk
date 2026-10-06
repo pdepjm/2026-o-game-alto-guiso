@@ -19,6 +19,8 @@ class Semilla {
     method aplicarEn(cruz) { cruz.recibir(self) }
 
     method esTraspasable() = true
+
+    method imagenDeBolsa() = self.image()
 }
 
 const semillaRoja = new Semilla(
@@ -49,4 +51,5 @@ const semillaAmarilla = new Semilla(
 // y no una clase. Al no hacer nada en aplicarEn, nos evita preguntar "¿tiene semilla?".
 object sinSemilla {
     method aplicarEn(cruz) {}
+    method imagenDeBolsa() = assetsManager.bolsaVacia()
 }

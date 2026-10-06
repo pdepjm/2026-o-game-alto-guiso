@@ -12,7 +12,7 @@ El jugador tiene que:
 4. Llevar cada semilla hasta una cruz del mismo color.
 5. Repetir el proceso hasta florecer todas las cruces.
 
-El jardinero se mueve deslizándose. Cuando se presiona una flecha, avanza en esa dirección una celda por cada `onTick` hasta encontrar una cerca. Mientras está deslizándose, las nuevas teclas de movimiento se ignoran. Esto hace que cada movimiento sea un recorrido completo de extremo a extremo, en lugar de un movimiento de una sola celda.
+El jardinero se mueve deslizándose. Cuando se presiona una flecha, se anima de forma continua entre celdas hasta encontrar una cerca o una piedra. Al pisar una esquina, gira en el sentido configurado; si ese giro apunta contra un muro, rebota en sentido contrario y sigue deslizándose. Mientras está deslizándose, las nuevas teclas de movimiento se ignoran. Esto hace que cada movimiento sea un recorrido completo de extremo a extremo, en lugar de un movimiento de una sola celda.
 
 Una semilla no desaparece al ser recogida: el jardinero la guarda en la mano, pero el objeto sigue en el tablero. Si se recoge otra semilla, reemplaza a la anterior. Una cruz solo florece cuando recibe una semilla del mismo color. Las cruces de otro color, o una cruz visitada sin semilla, no cambian.
 
@@ -40,6 +40,9 @@ El método `main.iniciar()` realiza estas tareas:
 wollok run florDeQuilombo.florDeQuilombo
 ```
 
+El tablero usa cuatro subceldas por celda lógica y reduce el tamaño de celda visual en la misma proporción,
+para conservar el tamaño de ventana mientras permite mover al jardinero en pasos menores.
+
 ## 3. Flujo general de una partida
 
 ### 3.1 Menú principal
@@ -57,7 +60,7 @@ La configuración todavía no tiene una acción asociada. La tecla `Q` detiene e
 
 ### 3.2 Selección de nivel
 
-La pantalla `selectorDeNiveles` muestra los botones de los niveles disponibles. La tecla `1` selecciona el primer mapa y la tecla `2` selecciona el segundo.
+La pantalla `selectorDeNiveles` muestra los botones de los niveles disponibles. Las teclas `1`, `2` y `3` seleccionan sus mapas correspondientes.
 
 Cuando se presiona un número:
 
@@ -84,15 +87,19 @@ El mapa es una lista de strings. Cada carácter representa algo:
 | `r` | Cruz roja |
 | `a` | Cruz azul |
 | `m` | Cruz amarilla |
+| `D` | Esquina transitable que gira al jardinero a la derecha |
+| `I` | Esquina transitable que gira al jardinero a la izquierda |
+| `T` | Esquina superior derecha que gira a la izquierda |
+| `O` | Esquina inferior derecha que gira a la izquierda |
 | Espacio | Celda libre |
 
 `partida.armar()` calcula el tamaño del mapa, lo centra dentro del tablero y recorre cada fila y columna. Para cada carácter llama a `ubicar(letra, posicion)`, que decide qué objeto debe configurarse en esa celda.
 
-Por cada carácter se crea el elemento que corresponde con `new`: `new Valla(...)` para un `#`, `new Cruz(...)` para una cruz, `new Piedra(...)` o `new CharcoDeBarro(...)` para los obstáculos. Las semillas no se crean: ya existen las tres y solo se les cambia la posición.
+Por cada carácter se crea el elemento que corresponde con `new`: `new Valla(...)` para un `#`, `new Cruz(...)` para una cruz, `new Piedra(...)` o `new CharcoDeBarro(...)` para los obstáculos, y `new Esquina(...)` para una esquina. Las semillas no se crean: ya existen las tres y solo se les cambia la posición.
 
 Todo lo que se pone en el tablero va a una única lista, `elementosDelNivel`. Las cruces además se guardan aparte en la lista `cruces`, que es la que se mira para saber si ya está todo plantado.
 
-Después del armado, `partida.mostrar()` agrega a la pantalla todos los elementos de esa lista y, al final, el jardinero, para que se dibuje por encima de los demás.
+Después del armado, `partida.mostrar()` agrega a la pantalla todos los elementos de esa lista y, al final, el jardinero y la bolsa de semillas, que se dibuja fuera del mapa.
 
 ### 3.4 Movimiento del jardinero
 
@@ -104,15 +111,14 @@ Si el jardinero no está deslizándose:
 2. Marca `deslizando = true`.
 3. Registra un evento periódico con `game.onTick`.
 
-Cada ejecución de ese evento llama a `jardinero.avanzarUnPaso()`:
+El juego representa cada celda lógica con cuatro subceldas de renderizado. Cada ejecución de
+`jardinero.animarPaso()` avanza una subcelda entera; al completar cuatro, procesa semillas, esquinas,
+cruces y victoria. El motor redondea las posiciones a celdas enteras, por eso esta subdivisión permite
+que el jardinero se vea avanzar en pasos más cortos y no saltar una celda completa cada vez.
 
-1. Calcula la siguiente posición usando la dirección actual.
-2. Consulta a `partida.puedeEntrarA(...)` para saber si hay una cerca.
-3. Si la celda está libre, mueve al jardinero.
-4. Revisa los elementos que están en esa posición.
-5. Permite que cada elemento reaccione al paso del jardinero.
-6. Comprueba si se completó el nivel.
-7. Si hay una cerca, llama a `jardinero.frenar()`.
+Antes de comenzar a moverse hacia una nueva celda, consulta a `partida.puedeEntrarA(...)`. Si esa celda
+está bloqueada, llama a `jardinero.frenar()`. Si pisa una esquina, aplica el giro; cuando el giro apunta
+contra un muro, invierte el rumbo para rebotar y seguir avanzando.
 
 Frenar cambia `deslizando` a `false` y elimina el evento periódico. Así el jardinero puede recibir una nueva dirección.
 
@@ -165,13 +171,14 @@ Define la clase `Cruz`. Cada instancia tiene:
 
 ### `juego/bloques.wlk`
 
-Define los elementos del jardín que no son ni semillas ni cruces, los tres como clases:
+Define los elementos del jardín que no son ni semillas ni cruces, como clases:
 
 - `Valla`: la cerca que rodea el jardín y arma el laberinto. Bloquea el paso.
 - `Piedra`: bloquea el paso igual que una valla, pero en el medio del jardín.
 - `CharcoDeBarro`: se puede pisar, pero al hacerlo el jardinero pierde la semilla que llevaba en la mano.
+- `Esquina`: se puede pisar y cambia la dirección del jardinero. El sentido del giro y la orientación de la imagen se configuran por separado para que coincidan con la esquina del mapa.
 
-Las tres entienden los mismos mensajes que el resto de los elementos (`position()`, `image()`, `esTraspasable()` y `pisadoPor(jardinero)`), así que el jardinero las trata igual que a todo lo demás.
+Todas entienden los mismos mensajes que el resto de los elementos (`position()`, `image()`, `esTraspasable()` y `pisadoPor(jardinero)`), así que el jardinero las trata igual que a todo lo demás.
 
 Están juntas en un mismo archivo porque cumplen el mismo papel dentro del tablero: la valla y la piedra se diferencian solo en dónde aparecen, y el charco comparte con ellas el mismo contrato.
 
@@ -190,6 +197,8 @@ Cada dirección sabe dos cosas:
 
 1. Cómo calcular la celda siguiente a partir de una posición.
 2. Qué imagen debe mostrar el jardinero mientras avanza en esa dirección.
+3. Cómo girar a derecha e izquierda.
+4. Cómo avanzar una subcelda para animar el movimiento.
 
 Esto evita llenar `jardinero` de condiciones distintas para cada flecha.
 
@@ -201,7 +210,7 @@ El método `mapa()` devuelve una lista de strings. El contenido textual funciona
 
 Un mapa no tiene ninguna lógica: es solo el dibujo. Todo lo que hay que hacer con él lo resuelve `partida`.
 
-`niveles/mapa2.wlk` sigue exactamente el mismo contrato: también ofrece `mapa()`, pero describe otro tablero. Por eso no hace falta repetir la explicación de su funcionamiento. Gracias a que los dos entienden el mismo mensaje, `partida` los usa sin saber cuál le toca.
+`niveles/mapa2.wlk` y `niveles/mapa3.wlk` siguen exactamente el mismo contrato: también ofrecen `mapa()`, pero describen otros tableros. Gracias a que los tres entienden el mismo mensaje, `partida` los usa sin saber cuál le toca.
 
 ### `juego/partida.wlk`
 
@@ -234,12 +243,16 @@ Sus métodos principales son:
 
 - `empezarEn(posicionInicial)`: reinicia su estado en una posición del mapa.
 - `mover(direccion)`: inicia un deslizamiento si no hay otro en curso.
-- `avanzarUnPaso()`: calcula y ejecuta un paso del movimiento.
+- `animarPaso()`: mueve al jardinero una subcelda por tick para suavizar el recorrido.
+- `avanzarUnPaso()`: calcula y ejecuta un paso lógico completo.
 - `frenar()`: detiene el evento de movimiento.
 - `recoger(semilla)`: cambia la semilla que lleva.
 - `plantarEn(cruz)`: delega en la semilla la interacción con una cruz.
+- `girar(giro)`: aplica el giro de la esquina o rebota si el rumbo está bloqueado.
 
 La imagen del jardinero se obtiene de la dirección actual, por lo que cambia automáticamente al moverse.
+
+El objeto `bolsaDeSemillas` muestra, fuera del mapa, un saco vacío o el saco del color de la semilla que lleva el jardinero. Su imagen consulta el estado actual, así que se actualiza al recoger una semilla o perderla en el barro. `partida` lo agrega y lo quita junto con los demás elementos visuales.
 
 ### `juego/semillas.wlk`
 
@@ -267,7 +280,7 @@ El botón de jugar cambia a la pantalla de niveles. Las acciones de configuraci�
 
 Define la pantalla de selección de niveles.
 
-Contiene el objeto `selectorDeNiveles`, que administra la pantalla completa, con sus tres botones (nivel 1, nivel 2 y volver) como instancias de `Boton`.
+Contiene el objeto `selectorDeNiveles`, que administra la pantalla completa, con botones para los tres niveles y volver, como instancias de `Boton`.
 
 La lista `mapas` mantiene la relación entre el número elegido y el mapa que debe cargarse. `presionarNivel(numero)` obtiene el mapa correspondiente, lo guarda en `partida` y navega hacia la partida.
 
@@ -296,7 +309,7 @@ Las teclas no modifican directamente al jardinero ni a las pantallas. En cambio,
 | `J` | `presionarJugar()` |
 | `V` | `presionarVolver()` |
 | `R` | `presionarReiniciar()` |
-| `1` y `2` | `presionarNivel(numero)` |
+| `1`, `2` y `3` | `presionarNivel(numero)` |
 | Flecha arriba | `presionarDireccion(arriba)` |
 | Flecha abajo | `presionarDireccion(abajo)` |
 | Flecha izquierda | `presionarDireccion(izquierda)` |
@@ -314,7 +327,7 @@ Contiene métodos para:
 - Fondos.
 - Botones del menú y de selección de niveles.
 - Imágenes del jardinero.
-- Semillas.
+- Semillas y sacos (vacío o del color que lleva el jardinero).
 - Cruces.
 - Flores.
 - Cercas.
@@ -345,6 +358,7 @@ El mismo archivo tiene un segundo `describe`, con otro mapa de prueba, para los 
 - La piedra frena al jardinero igual que una cerca.
 - El charco de barro le arruina la semilla que llevaba.
 - El charco no lo frena.
+- Las esquinas derecha e izquierda cambian el rumbo sin detener el deslizamiento.
 
 ### `tests/navegacion.wtest`
 
@@ -407,7 +421,7 @@ navegador
 └── partida
 
 partida
-├── interpreta mapa1 o mapa2
+├── interpreta mapa1, mapa2 o mapa3
 ├── configura jardinero
 ├── configura semillas
 ├── configura cruces

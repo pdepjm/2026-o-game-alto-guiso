@@ -3,6 +3,8 @@ import juego.partida.*
 import juego.jardinero.*
 import juego.direcciones.*
 import juego.semillas.*
+import niveles.mapa3.*
+import juego.escalaTablero.*
 
 object mapaDePrueba {
   method mapa() = [
@@ -17,8 +19,8 @@ object mapaDePrueba {
 describe "El jardinero en el jardín" {
 
   method initialize() {
-    game.width(7)
-    game.height(5)
+    game.width(7 * escalaTablero.factor())
+    game.height(5 * escalaTablero.factor())
     partida.nivel(mapaDePrueba)
     partida.mostrar()
   }
@@ -33,13 +35,25 @@ describe "El jardinero en el jardín" {
 
   test "el jardinero se desliza hasta chocar con una cerca" {
     self.deslizar(derecha)
-    assert.equals(game.at(5, 3), jardinero.position())
+    assert.equals(escalaTablero.posicionCelda(5, 3), jardinero.position())
     assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "el movimiento avanza en subceldas" {
+    jardinero.empezarEn(escalaTablero.posicionCelda(1, 3))
+    jardinero.mover(derecha)
+    (1 .. 3).forEach({ frame => jardinero.animarPaso() })
+
+    assert.equals(game.at(7, 12), jardinero.position())
+    assert.that(jardinero.estaDeslizando())
+    jardinero.frenar()
   }
 
   test "al pasar por una semilla la recoge" {
     self.deslizar(derecha)
     assert.equals(semillaRoja, jardinero.semillaEnMano())
+    assert.equals(semillaRoja.image(), bolsaDeSemillas.image())
+    assert.that(game.hasVisual(bolsaDeSemillas))
   }
 
   test "sin semilla, pasar por una cruz no hace nada" {
@@ -65,11 +79,12 @@ describe "El jardinero en el jardín" {
     self.deslizar(abajo)
     self.deslizar(izquierda)
     assert.equals(semillaAzul, jardinero.semillaEnMano())
+    assert.equals(semillaAzul.image(), bolsaDeSemillas.image())
   }
 
   test "la semilla queda en su lugar después de recogerla" {
     self.deslizar(derecha)
-    assert.that(partida.elementosEn(game.at(5, 3)).contains(semillaRoja))
+    assert.that(partida.elementosEn(escalaTablero.posicionCelda(5, 3)).contains(semillaRoja))
   }
 
   test "no se gana hasta plantar todas las flores" {
@@ -99,7 +114,7 @@ describe "El jardinero en el jardín" {
     self.deslizar(derecha)
     self.deslizar(izquierda)
     partida.presionarReiniciar()
-    assert.equals(game.at(1, 3), jardinero.position())
+    assert.equals(escalaTablero.posicionCelda(1, 3), jardinero.position())
     assert.equals(sinSemilla, jardinero.semillaEnMano())
     assert.notThat(self.cruzRoja().florecida())
   }
@@ -124,8 +139,8 @@ object mapaConObstaculos {
 describe "Los obstáculos del jardín" {
 
   method initialize() {
-    game.width(7)
-    game.height(5)
+    game.width(7 * escalaTablero.factor())
+    game.height(5 * escalaTablero.factor())
     partida.nivel(mapaConObstaculos)
     partida.mostrar()
   }
@@ -137,19 +152,121 @@ describe "Los obstáculos del jardín" {
 
   test "la piedra frena al jardinero igual que una cerca" {
     self.deslizar(derecha)
-    assert.equals(game.at(3, 3), jardinero.position())
+    assert.equals(escalaTablero.posicionCelda(3, 3), jardinero.position())
   }
 
   test "el charco de barro le arruina la semilla que llevaba" {
     self.deslizar(abajo)
     assert.equals(semillaRoja, jardinero.semillaEnMano())
+    assert.equals(semillaRoja.image(), bolsaDeSemillas.image())
     self.deslizar(derecha)
     assert.equals(sinSemilla, jardinero.semillaEnMano())
+    assert.equals(sinSemilla.imagenDeBolsa(), bolsaDeSemillas.image())
   }
 
   test "el charco no frena al jardinero" {
     self.deslizar(abajo)
     self.deslizar(derecha)
-    assert.equals(game.at(5, 1), jardinero.position())
+    assert.equals(escalaTablero.posicionCelda(5, 1), jardinero.position())
+  }
+}
+
+object mapaConEsquinaDerecha {
+  method mapa() = [
+    "#######",
+    "#     #",
+    "#J D  #",
+    "#     #",
+    "#######"
+  ]
+}
+
+object mapaConEsquinaIzquierda {
+  method mapa() = [
+    "#######",
+    "#     #",
+    "#J I  #",
+    "#     #",
+    "#######"
+  ]
+}
+
+describe "Las esquinas del jardín" {
+
+  method initialize() {
+    game.width(7 * escalaTablero.factor())
+    game.height(5 * escalaTablero.factor())
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => jardinero.avanzarUnPaso() })
+  }
+
+  test "la esquina derecha gira y el jardinero sigue hasta la cerca" {
+    partida.nivel(mapaConEsquinaDerecha)
+    partida.mostrar()
+
+    self.deslizar(derecha)
+
+    assert.equals(escalaTablero.posicionCelda(3, 1), jardinero.position())
+    assert.equals(abajo, jardinero.direccion())
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "la esquina izquierda gira y el jardinero sigue hasta la cerca" {
+    partida.nivel(mapaConEsquinaIzquierda)
+    partida.mostrar()
+
+    self.deslizar(derecha)
+
+    assert.equals(escalaTablero.posicionCelda(3, 3), jardinero.position())
+    assert.equals(arriba, jardinero.direccion())
+    assert.notThat(jardinero.estaDeslizando())
+  }
+}
+
+describe "Las esquinas del mapa 3" {
+
+  method initialize() {
+    game.width(21 * escalaTablero.factor())
+    game.height(12 * escalaTablero.factor())
+    partida.nivel(mapa3)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 50).forEach({ paso => jardinero.avanzarUnPaso() })
+  }
+
+  test "el saco vacío se muestra fuera del mapa 3" {
+    assert.that(game.hasVisual(bolsaDeSemillas))
+    assert.equals(escalaTablero.posicionCelda(1, 11), bolsaDeSemillas.position())
+    assert.equals(sinSemilla.imagenDeBolsa(), bolsaDeSemillas.image())
+  }
+
+  test "la esquina superior derecha del mapa 3 gira hacia la izquierda" {
+    jardinero.empezarEn(escalaTablero.posicionCelda(15, 8))
+    jardinero.mover(derecha)
+    jardinero.avanzarUnPaso()
+
+    assert.equals(escalaTablero.posicionCelda(16, 8), jardinero.position())
+    assert.that(jardinero.estaDeslizando())
+    self.deslizar(derecha)
+    assert.equals(escalaTablero.posicionCelda(4, 8), jardinero.position())
+    assert.equals(izquierda, jardinero.direccion())
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "se pueden florecer todas las cruces siguiendo la ruta del mapa 3" {
+    self.deslizar(derecha)
+    assert.equals(semillaRoja, jardinero.semillaEnMano())
+    self.deslizar(abajo)
+    assert.equals(semillaAmarilla, jardinero.semillaEnMano())
+    self.deslizar(derecha)
+
+    assert.that(partida.ganado())
+    assert.that(partida.cruces().all({ cruz => cruz.florecida() }))
   }
 }

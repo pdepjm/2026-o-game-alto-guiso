@@ -3,6 +3,7 @@ import utils.manager.*
 import pantallas.navegador.*
 import pantallas.selectorDeNiveles.*
 import pantallas.boton.*
+import juego.escalaTablero.*
 
 // El fondo de las pantallas de menú. Es único, por eso es un objeto y no una instancia.
 object fondoMenu {
@@ -12,9 +13,9 @@ object fondoMenu {
 
 object menuPrincipal {
     const botones = [
-        new Boton(position = game.at(11, 6), image = assetsManager.botonJugar()),
-        new Boton(position = game.at(11, 4), image = assetsManager.botonConfiguracion()),
-        new Boton(position = game.at(11, 2), image = assetsManager.botonSalir())
+        new Boton(position = escalaTablero.posicionCelda(11, 6), image = assetsManager.botonJugar()),
+        new Boton(position = escalaTablero.posicionCelda(11, 4), image = assetsManager.botonConfiguracion()),
+        new Boton(position = escalaTablero.posicionCelda(11, 2), image = assetsManager.botonSalir())
     ]
 
     method mostrar(){

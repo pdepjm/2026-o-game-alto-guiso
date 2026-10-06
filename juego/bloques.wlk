@@ -1,6 +1,7 @@
 import wollok.game.*
 import utils.manager.*
 import juego.semillas.*
+import juego.direcciones.*
 
 // Los elementos del jardín que no son ni semillas ni cruces.
 // Todos entienden los mismos mensajes, así el jardinero los trata a todos igual:
@@ -43,5 +44,18 @@ class CharcoDeBarro {
 
     method pisadoPor(jardinero) {
         jardinero.recoger(sinSemilla)
+    }
+}
+
+class Esquina {
+    const property position
+    const property giro
+
+    method image() = giro.imagen()
+
+    method esTraspasable() = true
+
+    method pisadoPor(jardinero) {
+        jardinero.girar(giro)
     }
 }
