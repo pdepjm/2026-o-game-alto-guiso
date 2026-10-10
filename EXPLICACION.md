@@ -99,7 +99,7 @@ Por cada carácter se crea el elemento que corresponde con `new`: `new Valla(...
 
 Todo lo que se pone en el tablero va a una única lista, `elementosDelNivel`. Las cruces además se guardan aparte en la lista `cruces`, que es la que se mira para saber si ya está todo plantado.
 
-Después del armado, `partida.mostrar()` agrega a la pantalla todos los elementos de esa lista y, al final, el jardinero y la bolsa de semillas, que se dibuja fuera del mapa.
+Después del armado, `partida.mostrar()` agrega a la pantalla todos los elementos de esa lista y, al final, el jardinero con el ícono de la semilla que lleva en la mano.
 
 ### 3.4 Movimiento del jardinero
 
@@ -168,6 +168,33 @@ Define la clase `Cruz`. Cada instancia tiene:
 - El comportamiento para reaccionar cuando el jardinero la pisa.
 
 `partida` crea una cruz por cada `r`, `a` o `m` del mapa con `new Cruz(...)`. Antes había seis objetos repetidos (`cruz1` a `cruz6`) y un límite de seis cruces por nivel: con la clase, ese límite desapareció.
+
+### `niveles/nivel.wlk`
+
+Define la clase `Nivel`. Cada instancia (`mapa1`, `mapa2`) sabe su número, su dibujo, si está desbloqueada y cuántos segundos se consideran una vuelta perfecta (`tiempoIdeal`).
+
+Dos métodos propios:
+
+- `imagenDelBoton()`: devuelve el cartel normal si está desbloqueado, o el cartel gris con candado si no.
+- `notaPara(segundos)`: devuelve S, A, B, C o D comparando con su `tiempoIdeal`. Cada nivel decide su propia exigencia.
+
+Solo `mapa1` arranca desbloqueado; el resto se abre al completar el anterior.
+
+### `pantallas/hud.wlk`
+
+Lo que se ve en pantalla más allá del tablero:
+
+- `barraDeTeclas`: la franja de abajo con las teclas disponibles. No sabe en qué pantalla estamos: le pregunta a `navegador.actual().ayuda()`, y cada pantalla contesta con las suyas.
+- `cronometro`: cuenta los segundos del nivel con un `onTick` de 1000 ms. La partida lo arranca al mostrar el nivel y lo para al ganar.
+- `cartelDeVictoria` y `textoDeVictoria`: el cartel grande y su texto. Van separados porque el texto de un visual se dibuja desde su posición y no en el centro de la imagen.
+
+### `juego/manoDelJardinero.wlk`
+
+Un ícono chiquito que muestra qué semilla lleva el jardinero. Su posición es la del jardinero (así lo sigue solo) y su imagen se la pide a la semilla que tiene en la mano. Si no lleva nada, `sinSemilla` devuelve una imagen transparente, así no hace falta agregar ni sacar el ícono del juego.
+
+### `pantallas/boton.wlk`
+
+Define la clase `Boton` (posición e imagen fijas) que usan el menú y el selector. En el selector hay además una clase `BotonDeNivel`, cuya imagen no es fija: se la pide al nivel, que la cambia según esté bloqueado o no.
 
 ### `juego/bloques.wlk`
 
@@ -252,7 +279,7 @@ Sus métodos principales son:
 
 La imagen del jardinero se obtiene de la dirección actual, por lo que cambia automáticamente al moverse.
 
-El objeto `bolsaDeSemillas` muestra, fuera del mapa, un saco vacío o el saco del color de la semilla que lleva el jardinero. Su imagen consulta el estado actual, así que se actualiza al recoger una semilla o perderla en el barro. `partida` lo agrega y lo quita junto con los demás elementos visuales.
+El objeto `manoDelJardinero` (en `juego/manoDelJardinero.wlk`) muestra, encima del jardinero, un ícono del color de la semilla que lleva. Su imagen consulta el estado actual, así que se actualiza al recoger una semilla o al perderla en el barro.
 
 ### `juego/semillas.wlk`
 
@@ -327,7 +354,7 @@ Contiene métodos para:
 - Fondos.
 - Botones del menú y de selección de niveles.
 - Imágenes del jardinero.
-- Semillas y sacos (vacío o del color que lleva el jardinero).
+- Semillas y el ícono de la semilla en la mano.
 - Cruces.
 - Flores.
 - Cercas.

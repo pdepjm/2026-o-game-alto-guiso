@@ -90,8 +90,3 @@ object jardinero {
         direccion = if (partida.puedeEntrarA(giroElegido.siguiente(posicionLogica))) giroElegido else direccion.opuesta()
     }
 }
-
-object bolsaDeSemillas {
-    method position() = escalaTablero.posicionCelda(1, escalaTablero.altoEnCeldas() - 1)
-    method image() = jardinero.semillaEnMano().imagenDeBolsa()
-}

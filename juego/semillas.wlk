@@ -10,6 +10,7 @@ class Semilla {
     const property image
     const property imagenCruz
     const property imagenFlor
+    const property imagenEnMano
     var property position = game.origin()
 
     // El jardinero la levanta al pasar por encima
@@ -19,8 +20,6 @@ class Semilla {
     method aplicarEn(cruz) { cruz.recibir(self) }
 
     method esTraspasable() = true
-
-    method imagenDeBolsa() = self.image()
 }
 
 const semillaRoja = new Semilla(
@@ -28,7 +27,8 @@ const semillaRoja = new Semilla(
     letraCruz = "r",
     image = assetsManager.semillaRoja(),
     imagenCruz = assetsManager.cruzRoja(),
-    imagenFlor = assetsManager.florRoja()
+    imagenFlor = assetsManager.florRoja(),
+    imagenEnMano = assetsManager.manoRoja()
 )
 
 const semillaAzul = new Semilla(
@@ -36,7 +36,8 @@ const semillaAzul = new Semilla(
     letraCruz = "a",
     image = assetsManager.semillaAzul(),
     imagenCruz = assetsManager.cruzAzul(),
-    imagenFlor = assetsManager.florAzul()
+    imagenFlor = assetsManager.florAzul(),
+    imagenEnMano = assetsManager.manoAzul()
 )
 
 const semillaAmarilla = new Semilla(
@@ -44,12 +45,14 @@ const semillaAmarilla = new Semilla(
     letraCruz = "m",
     image = assetsManager.semillaAmarilla(),
     imagenCruz = assetsManager.cruzAmarilla(),
-    imagenFlor = assetsManager.florAmarilla()
+    imagenFlor = assetsManager.florAmarilla(),
+    imagenEnMano = assetsManager.manoAmarilla()
 )
 
 // La mano vacía del jardinero. Es un concepto único en el juego, así que es un objeto
 // y no una clase. Al no hacer nada en aplicarEn, nos evita preguntar "¿tiene semilla?".
 object sinSemilla {
     method aplicarEn(cruz) {}
-    method imagenDeBolsa() = assetsManager.bolsaVacia()
+    // Un ícono transparente: con las manos vacías no se dibuja nada
+    method imagenEnMano() = assetsManager.manoVacia()
 }

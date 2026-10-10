@@ -11,6 +11,8 @@ object assetsManager {
     // El cartel de cada nivel, y el gris con candado para los que todavía no se desbloquearon
     method botonDeNivel(numero) = "UI/boton_nivel" + numero + ".png"
     method botonBloqueado() = "UI/boton_nivel_bloqueado.png"
+    method cartelVictoria() = "UI/cartel_victoria.png"
+    method colorDelTexto() = "FFFFFFFF"
 
     method jardineroAbajo() = "Jardinero/player_down.png"
     method jardineroArriba() = "Jardinero/player_up.png"
@@ -20,10 +22,15 @@ object assetsManager {
     method esquinaIzquierda() = "Cercas/corner_sup_left.png"
     method esquinaInferiorDerecha() = "Cercas/corner_inf_rigth.png"
 
+    // El ícono de la semilla que lleva en la mano
+    method manoRoja() = "Jardinero/mano_roja.png"
+    method manoAzul() = "Jardinero/mano_azul.png"
+    method manoAmarilla() = "Jardinero/mano_amarilla.png"
+    method manoVacia() = "Jardinero/mano_vacia.png"
+
     method semillaRoja() = "Semillas/red_seed.png"
     method semillaAzul() = "Semillas/blue_seed.png"
     method semillaAmarilla() = "Semillas/yellow_seed.png"
-    method bolsaVacia() = "Semillas/empty_sack.png"
     method cruzRoja() = "Cruces/red_x.png"
     method cruzAzul() = "Cruces/blue_x.png"
     method cruzAmarilla() = "Cruces/yellow_x.png"

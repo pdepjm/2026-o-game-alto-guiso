@@ -15,7 +15,12 @@ celdas es animado. Tiene que recoger las semillas de colores y pasar por las cru
 al pasar, la cruz se convierte en la flor de ese color. Se gana cuando todas las cruces tienen su flor.
 
 - Agarrar una semilla reemplaza la que tenía en la mano (la bolsa de semillas queda en su lugar).
+  Un ícono del color de la semilla se dibuja sobre el jardinero para saber qué lleva.
 - Pasar por una cruz de otro color, o sin semilla, no hace nada.
+- Al empezar solo está desbloqueado el nivel 1. Cada nivel completado desbloquea el siguiente.
+- Un cronómetro cuenta lo que tarda cada nivel y al terminar da una nota de S a D, según el
+  tiempo ideal que define cada nivel.
+- Abajo de todo siempre se ven las teclas que se pueden apretar en esa pantalla.
 
 #### Controles
 
@@ -60,5 +65,4 @@ puede tener todas las que haga falta. La `P` y la `B` funcionan, pero todavía n
 (`assets/Obstaculos/piedra.png` y `barro.png`), así que por ahora no se usan en los niveles.
 
 El mapa 3 tiene seis cruces y un recorrido circular: las esquinas `T` y `O` desvían al jardinero hacia
-la izquierda y continúan el recorrido. El saco de semillas se muestra
-fuera del tablero y cambia de imagen según la semilla que lleva el jardinero.
+la izquierda y continúan el recorrido. El ícono sobre el jardinero cambia según la semilla que lleva.

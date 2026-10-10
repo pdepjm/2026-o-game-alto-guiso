@@ -30,6 +30,8 @@ object selectorDeNiveles {
 
     const botonVolver = new Boton(position = escalaTablero.posicionCelda(1, 1), image = assetsManager.botonVolver())
 
+    method ayuda() = "1-2-3 elegir nivel     V volver al menu     Q salir"
+
     method mostrar() {
         game.addVisual(fondoMenu)
         botones.forEach({ boton => game.addVisual(boton) })

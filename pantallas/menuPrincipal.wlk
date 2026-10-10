@@ -18,6 +18,8 @@ object menuPrincipal {
         new Boton(position = escalaTablero.posicionCelda(11, 2), image = assetsManager.botonSalir())
     ]
 
+    method ayuda() = "J jugar     C configuracion     Q salir"
+
     method mostrar(){
         game.addVisual(fondoMenu)
         botones.forEach({ boton => game.addVisual(boton) })

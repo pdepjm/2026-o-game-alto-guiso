@@ -1,7 +1,9 @@
 import wollok.game.*
 import pantallas.navegador.*
 import pantallas.selectorDeNiveles.*
+import pantallas.hud.*
 import juego.jardinero.*
+import juego.manoDelJardinero.*
 import juego.semillas.*
 import juego.cruces.*
 import niveles.mapa1.*
@@ -26,15 +28,17 @@ object partida {
 
     method nivel() = nivel
     method nivel(unNivel) { nivel = unNivel }
+    method ganado() = ganado
+    method cruces() = cruces
+    method elementos() = elementosDelNivel
 
     // Lo llama el selector al elegir un nivel desbloqueado
     method jugar(unNivel) {
         nivel = unNivel
         navegador.irA(self)
     }
-    method ganado() = ganado
-    method cruces() = cruces
-    method elementos() = elementosDelNivel
+
+    method ayuda() = "Flechas mover     R reiniciar     V volver     Q salir"
 
     // ----- Armado del nivel -----
 
@@ -100,24 +104,39 @@ object partida {
     method ganar() {
         ganado = true
         jardinero.frenar()
+        cronometro.parar()
         selectorDeNiveles.desbloquearSiguienteA(nivel)
-        game.say(jardinero, "¡Jardín completo! V para volver")
+        self.mostrarCartel()
     }
+
+    method mostrarCartel() {
+        textoDeVictoria.text("NIVEL " + nivel.numero() + " COMPLETADO     Tiempo: " + cronometro.segundos() + "s     Nota: " + self.nota())
+        game.addVisual(cartelDeVictoria)
+        game.addVisual(textoDeVictoria)
+    }
+
+    method nota() = nivel.notaPara(cronometro.segundos())
 
     // ----- Pantalla -----
 
     method mostrar() {
         self.armar()
         elementosDelNivel.forEach({ elemento => game.addVisual(elemento) })
-        game.addVisual(jardinero) // último, para que se dibuje arriba de todo
-        game.addVisual(bolsaDeSemillas)
+        game.addVisual(jardinero) // el jardinero y su mano, al final, para que queden arriba
+        game.addVisual(manoDelJardinero)
+        game.addVisual(cronometro)
+        cronometro.arrancar()
     }
 
     method ocultar() {
         jardinero.frenar()
+        cronometro.parar()
         elementosDelNivel.forEach({ elemento => game.removeVisual(elemento) })
         game.removeVisual(jardinero)
-        game.removeVisual(bolsaDeSemillas)
+        game.removeVisual(manoDelJardinero)
+        game.removeVisual(cronometro)
+        if (game.hasVisual(cartelDeVictoria)) game.removeVisual(cartelDeVictoria)
+        if (game.hasVisual(textoDeVictoria)) game.removeVisual(textoDeVictoria)
     }
 
     method presionarDireccion(direccion) {

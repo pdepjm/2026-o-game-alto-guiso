@@ -73,7 +73,6 @@ describe "Navegación entre pantallas" {
     navegador.actual().presionarVolver()
     assert.equals(selectorDeNiveles, navegador.actual())
     assert.notThat(game.hasVisual(jardinero))
-    assert.notThat(game.hasVisual(bolsaDeSemillas))
   }
 
   test "desde el selector, V vuelve al menú" {
@@ -84,18 +83,15 @@ describe "Navegación entre pantallas" {
 
   test "cada nivel usa la cantidad de cruces de su mapa" {
     mapa2.desbloquear()
-    mapa3.desbloquear()
     navegador.actual().presionarJugar()
     navegador.actual().presionarNivel(1)
     assert.equals(2, partida.cruces().size())
-    assert.that(game.hasVisual(bolsaDeSemillas))
     navegador.actual().presionarVolver()
     navegador.actual().presionarNivel(2)
     assert.equals(6, partida.cruces().size())
-    assert.that(game.hasVisual(bolsaDeSemillas))
     navegador.actual().presionarVolver()
+    mapa3.desbloquear()
     navegador.actual().presionarNivel(3)
     assert.equals(6, partida.cruces().size())
-    assert.that(game.hasVisual(bolsaDeSemillas))
   }
 }

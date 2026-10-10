@@ -3,10 +3,13 @@ import juego.partida.*
 import juego.jardinero.*
 import juego.direcciones.*
 import juego.semillas.*
+import niveles.nivel.*
+import pantallas.hud.*
+import juego.manoDelJardinero.*
 import niveles.mapa3.*
 import juego.escalaTablero.*
-import niveles.nivel.*
 
+// Los mapas de prueba son niveles de verdad, para que se comporten igual que los del juego
 const mapaDePrueba = new Nivel(
   numero = 90,
   tiempoIdeal = 10,
@@ -56,8 +59,6 @@ describe "El jardinero en el jardín" {
   test "al pasar por una semilla la recoge" {
     self.deslizar(derecha)
     assert.equals(semillaRoja, jardinero.semillaEnMano())
-    assert.equals(semillaRoja.image(), bolsaDeSemillas.image())
-    assert.that(game.hasVisual(bolsaDeSemillas))
   }
 
   test "sin semilla, pasar por una cruz no hace nada" {
@@ -83,7 +84,7 @@ describe "El jardinero en el jardín" {
     self.deslizar(abajo)
     self.deslizar(izquierda)
     assert.equals(semillaAzul, jardinero.semillaEnMano())
-    assert.equals(semillaAzul.image(), bolsaDeSemillas.image())
+    assert.equals(semillaAzul.imagenEnMano(), manoDelJardinero.image())
   }
 
   test "la semilla queda en su lugar después de recogerla" {
@@ -165,10 +166,10 @@ describe "Los obstáculos del jardín" {
   test "el charco de barro le arruina la semilla que llevaba" {
     self.deslizar(abajo)
     assert.equals(semillaRoja, jardinero.semillaEnMano())
-    assert.equals(semillaRoja.image(), bolsaDeSemillas.image())
+    assert.equals(semillaRoja.imagenEnMano(), manoDelJardinero.image())
     self.deslizar(derecha)
     assert.equals(sinSemilla, jardinero.semillaEnMano())
-    assert.equals(sinSemilla.imagenDeBolsa(), bolsaDeSemillas.image())
+    assert.equals(sinSemilla.imagenEnMano(), manoDelJardinero.image())
   }
 
   test "el charco no frena al jardinero" {
@@ -253,12 +254,6 @@ describe "Las esquinas del mapa 3" {
     (1 .. 50).forEach({ paso => jardinero.avanzarUnPaso() })
   }
 
-  test "el saco vacío se muestra fuera del mapa 3" {
-    assert.that(game.hasVisual(bolsaDeSemillas))
-    assert.equals(escalaTablero.posicionCelda(1, 11), bolsaDeSemillas.position())
-    assert.equals(sinSemilla.imagenDeBolsa(), bolsaDeSemillas.image())
-  }
-
   test "la esquina superior derecha del mapa 3 gira hacia la izquierda" {
     jardinero.empezarEn(escalaTablero.posicionCelda(15, 8))
     jardinero.mover(derecha)
@@ -281,5 +276,51 @@ describe "Las esquinas del mapa 3" {
 
     assert.that(partida.ganado())
     assert.that(partida.cruces().all({ cruz => cruz.florecida() }))
+  }
+}
+
+describe "El cronometro y la nota" {
+
+  method initialize() {
+    game.width(7)
+    game.height(5)
+    partida.nivel(mapaDePrueba)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => jardinero.avanzarUnPaso() })
+  }
+
+  test "el cronometro arranca en cero al mostrar el nivel" {
+    assert.equals(0, cronometro.segundos())
+  }
+
+  test "la nota es S si se termina dentro del tiempo ideal" {
+    assert.equals("S", mapaDePrueba.notaPara(10))
+  }
+
+  test "la nota empeora a medida que se tarda mas" {
+    assert.equals("A", mapaDePrueba.notaPara(20))
+    assert.equals("B", mapaDePrueba.notaPara(30))
+    assert.equals("C", mapaDePrueba.notaPara(40))
+    assert.equals("D", mapaDePrueba.notaPara(100))
+  }
+
+  test "al ganar, el cartel muestra el nivel y la nota" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    self.deslizar(abajo)
+    self.deslizar(derecha)
+    assert.that(partida.ganado())
+    assert.that(textoDeVictoria.text().contains("COMPLETADO"))
+    assert.that(textoDeVictoria.text().contains("Nota: S"))
+  }
+
+  test "el icono de la mano muestra la semilla que lleva" {
+    assert.equals(sinSemilla.imagenEnMano(), manoDelJardinero.image())
+    self.deslizar(derecha)
+    assert.equals(semillaRoja.imagenEnMano(), manoDelJardinero.image())
   }
 }
