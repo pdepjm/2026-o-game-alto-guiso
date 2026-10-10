@@ -6,10 +6,11 @@ object assetsManager {
     method botonJugar() = "UI/play_botton.png"
     method botonConfiguracion() = "UI/setting_button.png"
     method botonSalir() = "UI/exit_button.png"
-    method botonNivel1() = "UI/level1_button.png"
-    method botonNivel2() = "UI/level2_button.png"
-    method botonNivel3() = "UI/level3_button.png"
     method botonVolver() = "UI/back_button.png"
+
+    // El cartel de cada nivel, y el gris con candado para los que todavía no se desbloquearon
+    method botonDeNivel(numero) = "UI/boton_nivel" + numero + ".png"
+    method botonBloqueado() = "UI/boton_nivel_bloqueado.png"
 
     method jardineroAbajo() = "Jardinero/player_down.png"
     method jardineroArriba() = "Jardinero/player_up.png"

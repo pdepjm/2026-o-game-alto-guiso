@@ -34,12 +34,32 @@ describe "Navegación entre pantallas" {
 
   test "desde el selector se elige el nivel con su número" {
     navegador.actual().presionarJugar()
-    navegador.actual().presionarNivel(2)
+    navegador.actual().presionarNivel(1)
     assert.equals(partida, navegador.actual())
+    assert.equals(mapa1, partida.nivel())
+  }
+
+  test "el nivel 2 arranca bloqueado y no se puede entrar" {
+    assert.notThat(mapa2.desbloqueado())
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(2)
+    assert.equals(selectorDeNiveles, navegador.actual())
+  }
+
+  test "al completar un nivel se desbloquea el siguiente" {
+    selectorDeNiveles.desbloquearSiguienteA(mapa1)
+    assert.that(mapa2.desbloqueado())
+  }
+
+  test "una vez desbloqueado, se puede entrar al nivel 2" {
+    mapa2.desbloquear()
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(2)
     assert.equals(mapa2, partida.nivel())
   }
 
   test "desde el selector se elige el mapa 3 con la tecla 3" {
+    mapa3.desbloquear()
     navegador.actual().presionarJugar()
     navegador.actual().presionarNivel(3)
     assert.equals(partida, navegador.actual())
@@ -63,6 +83,8 @@ describe "Navegación entre pantallas" {
   }
 
   test "cada nivel usa la cantidad de cruces de su mapa" {
+    mapa2.desbloquear()
+    mapa3.desbloquear()
     navegador.actual().presionarJugar()
     navegador.actual().presionarNivel(1)
     assert.equals(2, partida.cruces().size())

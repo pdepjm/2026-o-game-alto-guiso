@@ -5,16 +5,20 @@ import juego.direcciones.*
 import juego.semillas.*
 import niveles.mapa3.*
 import juego.escalaTablero.*
+import niveles.nivel.*
 
-object mapaDePrueba {
-  method mapa() = [
+const mapaDePrueba = new Nivel(
+  numero = 90,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
     "#######",
     "#J r R#",
     "#     #",
     "#A a  #",
     "#######"
   ]
-}
+)
 
 describe "El jardinero en el jardín" {
 
@@ -126,15 +130,18 @@ describe "El jardinero en el jardín" {
 //   y=2  #     #
 //   y=1  #R  B #     semilla roja en (1,1)   charco de barro en (4,1)
 //   y=0  #######
-object mapaConObstaculos {
-  method mapa() = [
+const mapaConObstaculos = new Nivel(
+  numero = 91,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
     "#######",
     "#J  P #",
     "#     #",
     "#R  B #",
     "#######"
   ]
-}
+)
 
 describe "Los obstáculos del jardín" {
 
@@ -171,25 +178,31 @@ describe "Los obstáculos del jardín" {
   }
 }
 
-object mapaConEsquinaDerecha {
-  method mapa() = [
+const mapaConEsquinaDerecha = new Nivel(
+  numero = 92,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
     "#######",
     "#     #",
     "#J D  #",
     "#     #",
     "#######"
   ]
-}
+)
 
-object mapaConEsquinaIzquierda {
-  method mapa() = [
+const mapaConEsquinaIzquierda = new Nivel(
+  numero = 93,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
     "#######",
     "#     #",
     "#J I  #",
     "#     #",
     "#######"
   ]
-}
+)
 
 describe "Las esquinas del jardín" {
 

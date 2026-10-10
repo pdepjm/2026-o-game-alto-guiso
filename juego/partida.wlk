@@ -26,6 +26,12 @@ object partida {
 
     method nivel() = nivel
     method nivel(unNivel) { nivel = unNivel }
+
+    // Lo llama el selector al elegir un nivel desbloqueado
+    method jugar(unNivel) {
+        nivel = unNivel
+        navegador.irA(self)
+    }
     method ganado() = ganado
     method cruces() = cruces
     method elementos() = elementosDelNivel
@@ -94,6 +100,7 @@ object partida {
     method ganar() {
         ganado = true
         jardinero.frenar()
+        selectorDeNiveles.desbloquearSiguienteA(nivel)
         game.say(jardinero, "¡Jardín completo! V para volver")
     }
 
