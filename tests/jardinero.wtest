@@ -8,6 +8,7 @@ import pantallas.hud.*
 import juego.manoDelJardinero.*
 import niveles.mapa3.*
 import juego.escalaTablero.*
+import utils.manager.*
 
 // Los mapas de prueba son niveles de verdad, para que se comporten igual que los del juego
 const mapaDePrueba = new Nivel(
@@ -308,19 +309,40 @@ describe "El cronometro y la nota" {
     assert.equals("D", mapaDePrueba.notaPara(100))
   }
 
-  test "al ganar, el cartel muestra el nivel y la nota" {
+  test "al ganar aparece el cartel con la medalla de la nota" {
     self.deslizar(derecha)
     self.deslizar(izquierda)
     self.deslizar(abajo)
     self.deslizar(derecha)
     assert.that(partida.ganado())
-    assert.that(textoDeVictoria.text().contains("COMPLETADO"))
-    assert.that(textoDeVictoria.text().contains("Nota: S"))
+    assert.that(game.hasVisual(fondoDeVictoria))
+    assert.equals("S", medalla.nota())
   }
 
   test "el icono de la mano muestra la semilla que lleva" {
     assert.equals(sinSemilla.imagenEnMano(), manoDelJardinero.image())
     self.deslizar(derecha)
     assert.equals(semillaRoja.imagenEnMano(), manoDelJardinero.image())
+  }
+}
+
+// El tiempo y la nota se dibujan con imágenes (el motor no deja agrandar los textos),
+// así que lo que se prueba es qué imagen elige cada cifra.
+describe "Las cifras del cronometro" {
+
+  test "cada cifra muestra la parte del numero que le toca" {
+    cronometro.segundos(42)
+    assert.equals(assetsManager.digito(4), new Digito(position = game.origin(), potencia = 10).image())
+    assert.equals(assetsManager.digito(2), new Digito(position = game.origin(), potencia = 1).image())
+  }
+
+  test "los ceros de adelante no se dibujan" {
+    cronometro.segundos(42)
+    assert.equals(assetsManager.digitoVacio(), new Digito(position = game.origin(), potencia = 100).image())
+  }
+
+  test "en cero, las unidades igual muestran el cero" {
+    cronometro.segundos(0)
+    assert.equals(assetsManager.digito(0), new Digito(position = game.origin(), potencia = 1).image())
   }
 }

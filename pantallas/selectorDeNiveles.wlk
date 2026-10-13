@@ -28,9 +28,9 @@ object selectorDeNiveles {
         new BotonDeNivel(position = escalaTablero.posicionCelda(16, 7), nivel = mapa3)
     ]
 
-    const botonVolver = new Boton(position = escalaTablero.posicionCelda(1, 1), image = assetsManager.botonVolver())
+    const botonVolver = new Boton(position = game.at(2, 42), image = assetsManager.botonVolver())
 
-    method ayuda() = "1-2-3 elegir nivel     V volver al menu     Q salir"
+    method imagenDeTeclas() = assetsManager.teclasDelSelector()
 
     method mostrar() {
         game.addVisual(fondoMenu)

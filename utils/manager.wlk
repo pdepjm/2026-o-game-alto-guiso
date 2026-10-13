@@ -3,16 +3,26 @@
 object assetsManager {
     method fondoMenu() = "Fondos/fondoMenu1.png"
     method fondoCesped() = "Fondos/grass.png"
-    method botonJugar() = "UI/play_botton.png"
-    method botonConfiguracion() = "UI/setting_button.png"
-    method botonSalir() = "UI/exit_button.png"
-    method botonVolver() = "UI/back_button.png"
+    method botonJugar() = "UI/boton_jugar.png"
+    method botonConfiguracion() = "UI/boton_configuracion.png"
+    method botonSalir() = "UI/boton_salir.png"
+    method botonVolver() = "UI/boton_volver.png"
 
     // El cartel de cada nivel, y el gris con candado para los que todavía no se desbloquearon
     method botonDeNivel(numero) = "UI/boton_nivel" + numero + ".png"
-    method botonBloqueado() = "UI/boton_nivel_bloqueado.png"
+    method botonBloqueado(numero) = "UI/boton_nivel" + numero + "_bloqueado.png"
     method cartelVictoria() = "UI/cartel_victoria.png"
-    method colorDelTexto() = "FFFFFFFF"
+    method tituloDelJuego() = "UI/titulo.png"
+
+    // Las teclas de cada pantalla y el cronometro vienen con el texto dibujado adentro,
+    // porque el motor del juego no deja agrandar los textos (los dibuja siempre en 12 px)
+    method teclasDelMenu() = "UI/teclas_menu.png"
+    method teclasDelSelector() = "UI/teclas_selector.png"
+    method teclasDeLaPartida() = "UI/teclas_partida.png"
+    method etiquetaTiempo() = "UI/etiqueta_tiempo.png"
+    method digito(numero) = "UI/digito_" + numero + ".png"
+    method digitoVacio() = "UI/digito_vacio.png"
+    method medalla(nota) = "UI/medalla_" + nota + ".png"
 
     method jardineroAbajo() = "Jardinero/player_down.png"
     method jardineroArriba() = "Jardinero/player_up.png"

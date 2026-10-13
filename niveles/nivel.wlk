@@ -11,7 +11,7 @@ class Nivel {
 
     // El cartel del selector cambia según el nivel esté bloqueado o no
     method imagenDelBoton() =
-        if (desbloqueado) assetsManager.botonDeNivel(numero) else assetsManager.botonBloqueado()
+        if (desbloqueado) assetsManager.botonDeNivel(numero) else assetsManager.botonBloqueado(numero)
 
     method desbloquear() { desbloqueado = true }
 

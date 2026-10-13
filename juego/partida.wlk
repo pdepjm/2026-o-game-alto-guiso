@@ -10,6 +10,7 @@ import niveles.mapa1.*
 import juego.bloques.*
 import juego.direcciones.*
 import juego.escalaTablero.*
+import utils.manager.*
 
 object partida {
     var nivel = mapa1
@@ -38,7 +39,7 @@ object partida {
         navegador.irA(self)
     }
 
-    method ayuda() = "Flechas mover     R reiniciar     V volver     Q salir"
+    method imagenDeTeclas() = assetsManager.teclasDeLaPartida()
 
     // ----- Armado del nivel -----
 
@@ -110,9 +111,7 @@ object partida {
     }
 
     method mostrarCartel() {
-        textoDeVictoria.text("NIVEL " + nivel.numero() + " COMPLETADO     Tiempo: " + cronometro.segundos() + "s     Nota: " + self.nota())
-        game.addVisual(cartelDeVictoria)
-        game.addVisual(textoDeVictoria)
+        cartelDeVictoria.mostrar(self.nota())
     }
 
     method nota() = nivel.notaPara(cronometro.segundos())
@@ -124,7 +123,7 @@ object partida {
         elementosDelNivel.forEach({ elemento => game.addVisual(elemento) })
         game.addVisual(jardinero) // el jardinero y su mano, al final, para que queden arriba
         game.addVisual(manoDelJardinero)
-        game.addVisual(cronometro)
+        relojDePantalla.mostrar()
         cronometro.arrancar()
     }
 
@@ -134,9 +133,8 @@ object partida {
         elementosDelNivel.forEach({ elemento => game.removeVisual(elemento) })
         game.removeVisual(jardinero)
         game.removeVisual(manoDelJardinero)
-        game.removeVisual(cronometro)
-        if (game.hasVisual(cartelDeVictoria)) game.removeVisual(cartelDeVictoria)
-        if (game.hasVisual(textoDeVictoria)) game.removeVisual(textoDeVictoria)
+        relojDePantalla.ocultar()
+        cartelDeVictoria.ocultar()
     }
 
     method presionarDireccion(direccion) {
