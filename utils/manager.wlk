@@ -28,9 +28,12 @@ object assetsManager {
     method jardineroArriba() = "Jardinero/player_up.png"
     method jardineroDerecha() = "Jardinero/player_rigth.png"
     method jardineroIzquierda() = "Jardinero/player_left.png"
-    method esquinaDerecha() = "Cercas/corner_sup_rigth.png"
-    method esquinaIzquierda() = "Cercas/corner_sup_left.png"
-    method esquinaInferiorDerecha() = "Cercas/corner_inf_rigth.png"
+    // Las rampas son el mismo bloque de valla cortado en diagonal, por eso se ven
+    // como una continuacion de la cerca. El nombre dice de que lado esta la madera.
+    method rampaArribaDerecha() = "Cercas/rampa_arriba_derecha.png"
+    method rampaArribaIzquierda() = "Cercas/rampa_arriba_izquierda.png"
+    method rampaAbajoDerecha() = "Cercas/rampa_abajo_derecha.png"
+    method rampaAbajoIzquierda() = "Cercas/rampa_abajo_izquierda.png"
 
     // El ícono de la semilla que lleva en la mano
     method manoRoja() = "Jardinero/mano_roja.png"
@@ -47,9 +50,14 @@ object assetsManager {
     method florRoja() = "Flores/red_flower.png"
     method florAzul() = "Flores/blue_flower.png"
     method florAmarilla() = "Flores/yellow_flower.png"
-    method valla() = "Cercas/fence_x1.png"
+    method valla() = "Cercas/valla.png"
 
     // Todavía no están dibujadas: hay que agregar los dos .png en assets/Obstaculos/
     method piedra() = "Obstaculos/piedra.png"
     method barro() = "Obstaculos/barro.png"
+    method espinas() = "Obstaculos/espinas.png"
+    method vidrio() = "Obstaculos/vidrio.png"
+    method vidrioRoto() = "Obstaculos/vidrio_roto.png"
+    method agujero() = "Obstaculos/agujero.png"
+    method escalera() = "Cercas/stair.png"
 }

@@ -39,20 +39,20 @@ object derecha {
 
 object giroDerecha {
     method aplicar(direccion) = direccion.girarDerecha()
-    method imagen() = assetsManager.esquinaDerecha()
+    method imagen() = assetsManager.rampaArribaDerecha()
 }
 
 object giroIzquierda {
     method aplicar(direccion) = direccion.girarIzquierda()
-    method imagen() = assetsManager.esquinaIzquierda()
+    method imagen() = assetsManager.rampaArribaIzquierda()
 }
 
 object giroIzquierdaSuperiorDerecha {
     method aplicar(direccion) = giroIzquierda.aplicar(direccion)
-    method imagen() = assetsManager.esquinaDerecha()
+    method imagen() = assetsManager.rampaArribaDerecha()
 }
 
 object giroIzquierdaInferiorDerecha {
     method aplicar(direccion) = giroIzquierda.aplicar(direccion)
-    method imagen() = assetsManager.esquinaInferiorDerecha()
+    method imagen() = assetsManager.rampaAbajoDerecha()
 }
