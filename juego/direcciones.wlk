@@ -7,6 +7,7 @@ object arriba {
     method imagenJardinero() = assetsManager.jardineroArriba()
     method girarDerecha() = derecha
     method girarIzquierda() = izquierda
+    method esVertical() = true
     method opuesta() = abajo
 }
 
@@ -16,6 +17,7 @@ object abajo {
     method imagenJardinero() = assetsManager.jardineroAbajo()
     method girarDerecha() = izquierda
     method girarIzquierda() = derecha
+    method esVertical() = true
     method opuesta() = arriba
 }
 
@@ -25,6 +27,7 @@ object izquierda {
     method imagenJardinero() = assetsManager.jardineroIzquierda()
     method girarDerecha() = arriba
     method girarIzquierda() = abajo
+    method esVertical() = false
     method opuesta() = derecha
 }
 
@@ -34,6 +37,7 @@ object derecha {
     method imagenJardinero() = assetsManager.jardineroDerecha()
     method girarDerecha() = abajo
     method girarIzquierda() = arriba
+    method esVertical() = false
     method opuesta() = izquierda
 }
 

@@ -102,3 +102,14 @@ object cartelDeVictoria {
         partes.forEach({ parte => if (game.hasVisual(parte)) game.removeVisual(parte) })
     }
 }
+
+// El cartel que aparece al clavarse con las espinas. Es más simple que el de victoria:
+// no muestra ni tiempo ni nota, así que es una sola imagen con todo el texto adentro.
+object cartelDeDerrota {
+    method position() = game.at(20, 13)
+    method image() = assetsManager.cartelDerrota()
+
+    method mostrar() { game.addVisual(self) }
+
+    method ocultar() { if (game.hasVisual(self)) game.removeVisual(self) }
+}

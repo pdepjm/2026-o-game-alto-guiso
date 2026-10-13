@@ -35,7 +35,7 @@ describe "El jardinero en el jardín" {
 
   method deslizar(direccion) {
     jardinero.mover(direccion)
-    (1 .. 10).forEach({ paso => jardinero.avanzarUnPaso() })
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
   }
 
   method cruzRoja() = partida.cruces().first()
@@ -129,7 +129,7 @@ describe "El jardinero en el jardín" {
 // Mapa aparte para probar los obstáculos, con un tablero de 7x5:
 //   y=4  #######
 //   y=3  #J  P #     jardinero en (1,3)   piedra en (4,3)
-//   y=2  #     #
+//   y=2  #    r#     cruz roja en (5,2), que el jardinero nunca pisa
 //   y=1  #R  B #     semilla roja en (1,1)   charco de barro en (4,1)
 //   y=0  #######
 const mapaConObstaculos = new Nivel(
@@ -139,7 +139,7 @@ const mapaConObstaculos = new Nivel(
   mapa = [
     "#######",
     "#J  P #",
-    "#     #",
+    "#    r#",
     "#R  B #",
     "#######"
   ]
@@ -156,7 +156,7 @@ describe "Los obstáculos del jardín" {
 
   method deslizar(direccion) {
     jardinero.mover(direccion)
-    (1 .. 10).forEach({ paso => jardinero.avanzarUnPaso() })
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
   }
 
   test "la piedra frena al jardinero igual que una cerca" {
@@ -186,7 +186,7 @@ const mapaConEsquinaDerecha = new Nivel(
   desbloqueado = true,
   mapa = [
     "#######",
-    "#     #",
+    "#    r#",
     "#J D  #",
     "#     #",
     "#######"
@@ -201,7 +201,7 @@ const mapaConEsquinaIzquierda = new Nivel(
     "#######",
     "#     #",
     "#J I  #",
-    "#     #",
+    "#    r#",
     "#######"
   ]
 )
@@ -215,7 +215,7 @@ describe "Las esquinas del jardín" {
 
   method deslizar(direccion) {
     jardinero.mover(direccion)
-    (1 .. 10).forEach({ paso => jardinero.avanzarUnPaso() })
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
   }
 
   test "la esquina derecha gira y el jardinero sigue hasta la cerca" {
@@ -291,7 +291,7 @@ describe "El cronometro y la nota" {
 
   method deslizar(direccion) {
     jardinero.mover(direccion)
-    (1 .. 10).forEach({ paso => jardinero.avanzarUnPaso() })
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
   }
 
   test "el cronometro arranca en cero al mostrar el nivel" {
@@ -344,5 +344,146 @@ describe "Las cifras del cronometro" {
   test "en cero, las unidades igual muestran el cero" {
     cronometro.segundos(0)
     assert.equals(assetsManager.digito(0), new Digito(position = game.origin(), potencia = 1).image())
+  }
+}
+
+const mapaConEspinas = new Nivel(
+  numero = 94,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
+    "#######",
+    "#J  X #",
+    "#     #",
+    "#r    #",
+    "#######"
+  ]
+)
+
+describe "Las espinas" {
+
+  method initialize() {
+    game.width(7 * escalaTablero.factor())
+    game.height(5 * escalaTablero.factor())
+    partida.nivel(mapaConEspinas)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
+  }
+
+  test "pisar las espinas hace perder el nivel" {
+    self.deslizar(derecha)
+    assert.that(partida.perdido())
+    assert.notThat(partida.ganado())
+  }
+
+  test "al perder aparece el cartel de derrota" {
+    self.deslizar(derecha)
+    assert.that(game.hasVisual(cartelDeDerrota))
+  }
+
+  test "una vez perdido, las flechas no mueven al jardinero" {
+    self.deslizar(derecha)
+    partida.presionarDireccion(abajo)
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "reiniciar vuelve a empezar el nivel" {
+    self.deslizar(derecha)
+    partida.presionarReiniciar()
+    assert.notThat(partida.perdido())
+    assert.notThat(game.hasVisual(cartelDeDerrota))
+  }
+}
+
+const mapaConEscalera = new Nivel(
+  numero = 95,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
+    "#######",
+    "#  E  #",
+    "#  E  #",
+    "#J E r#",
+    "#######"
+  ]
+)
+
+describe "La escalera" {
+
+  method initialize() {
+    game.width(7 * escalaTablero.factor())
+    game.height(5 * escalaTablero.factor())
+    partida.nivel(mapaConEscalera)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
+  }
+
+  test "al llegar a la escalera el jardinero se queda ahi" {
+    self.deslizar(derecha)
+    assert.equals(escalaTablero.posicionCelda(3, 1), jardinero.position())
+    assert.that(jardinero.estaEnEscalera())
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "en la escalera sube de a un escalon por vez" {
+    self.deslizar(derecha)
+    jardinero.mover(arriba)
+    assert.equals(escalaTablero.posicionCelda(3, 2), jardinero.position())
+    assert.notThat(jardinero.estaDeslizando())
+    jardinero.mover(arriba)
+    assert.equals(escalaTablero.posicionCelda(3, 3), jardinero.position())
+  }
+
+  test "moviendose para el costado se baja de la escalera y vuelve a deslizarse" {
+    self.deslizar(derecha)
+    self.deslizar(derecha)
+    assert.notThat(jardinero.estaEnEscalera())
+    assert.equals(escalaTablero.posicionCelda(5, 1), jardinero.position())
+  }
+}
+
+const mapaConAgujeros = new Nivel(
+  numero = 96,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
+    "#######",
+    "#J H  #",
+    "#     #",
+    "#  H r#",
+    "#######"
+  ]
+)
+
+describe "Los agujeros de topo" {
+
+  method initialize() {
+    game.width(7 * escalaTablero.factor())
+    game.height(5 * escalaTablero.factor())
+    partida.nivel(mapaConAgujeros)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
+  }
+
+  test "el jardinero sale por el otro agujero y sigue de largo" {
+    self.deslizar(derecha)
+    assert.equals(escalaTablero.posicionCelda(5, 1), jardinero.position())
+  }
+
+  test "salir de un agujero no lo vuelve a meter en el otro" {
+    self.deslizar(derecha)
+    assert.notThat(escalaTablero.posicionCelda(3, 3) == jardinero.position())
   }
 }

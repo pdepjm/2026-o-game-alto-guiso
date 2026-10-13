@@ -15,6 +15,7 @@ import utils.manager.*
 object partida {
     var nivel = mapa1
     var ganado = false
+    var perdido = false
 
     // Todo lo que está puesto en el tablero: vallas, semillas, cruces, piedras y charcos.
     // Es una sola lista para que el jardinero le pueda preguntar a cualquiera y para que
@@ -27,9 +28,14 @@ object partida {
 
     const semillas = [semillaRoja, semillaAzul, semillaAmarilla]
 
+    // Los agujeros de topo se emparejan de a dos en el orden en que aparecen en el mapa.
+    // Acá queda el que todavía está esperando su pareja (ninguno o uno).
+    const agujerosSinPareja = []
+
     method nivel() = nivel
     method nivel(unNivel) { nivel = unNivel }
     method ganado() = ganado
+    method perdido() = perdido
     method cruces() = cruces
     method elementos() = elementosDelNivel
 
@@ -46,7 +52,9 @@ object partida {
     method armar() {
         elementosDelNivel.clear()
         cruces.clear()
+        agujerosSinPareja.clear()
         ganado = false
+        perdido = false
         const filas = nivel.mapa()
         const alto = filas.size()
         const ancho = filas.first().size()
@@ -67,6 +75,9 @@ object partida {
         if (letra == "#") self.agregar(new Valla(position = posicion))
         if (letra == "P") self.agregar(new Piedra(position = posicion))
         if (letra == "B") self.agregar(new CharcoDeBarro(position = posicion))
+        if (letra == "X") self.agregar(new Espinas(position = posicion))
+        if (letra == "E") self.agregar(new Escalera(position = posicion))
+        if (letra == "H") self.ponerAgujero(posicion)
         if (letra == "D") self.agregar(new Esquina(position = posicion, giro = giroDerecha))
         if (letra == "I") self.agregar(new Esquina(position = posicion, giro = giroIzquierda))
         if (letra == "T") self.agregar(new Esquina(position = posicion, giro = giroIzquierdaSuperiorDerecha))
@@ -77,6 +88,17 @@ object partida {
     }
 
     method agregar(elemento) { elementosDelNivel.add(elemento) }
+
+    method ponerAgujero(posicion) {
+        const nuevo = new Agujero(position = posicion)
+        // Si había uno esperando, se emparejan entre ellos y la lista queda vacía otra vez
+        agujerosSinPareja.forEach({ anterior =>
+            anterior.emparejarCon(nuevo)
+            nuevo.emparejarCon(anterior)
+        })
+        if (agujerosSinPareja.isEmpty()) agujerosSinPareja.add(nuevo) else agujerosSinPareja.clear()
+        self.agregar(nuevo)
+    }
 
     method ponerSemilla(semilla, posicion) {
         semilla.position(posicion)
@@ -114,6 +136,14 @@ object partida {
         cartelDeVictoria.mostrar(self.nota())
     }
 
+    // Lo llama el jardinero cuando se clava con las espinas
+    method perder() {
+        perdido = true
+        jardinero.frenar()
+        cronometro.parar()
+        cartelDeDerrota.mostrar()
+    }
+
     method nota() = nivel.notaPara(cronometro.segundos())
 
     // ----- Pantalla -----
@@ -135,10 +165,11 @@ object partida {
         game.removeVisual(manoDelJardinero)
         relojDePantalla.ocultar()
         cartelDeVictoria.ocultar()
+        cartelDeDerrota.ocultar()
     }
 
     method presionarDireccion(direccion) {
-        if (!ganado) jardinero.mover(direccion)
+        if (!ganado && !perdido) jardinero.mover(direccion)
     }
 
     method presionarReiniciar() {

@@ -3,6 +3,7 @@ import utils.manager.*
 import juego.semillas.*
 import juego.direcciones.*
 
+
 // Los elementos del jardín que no son ni semillas ni cruces.
 // Todos entienden los mismos mensajes, así el jardinero los trata a todos igual:
 //   position()            -> en qué celda está
@@ -57,5 +58,53 @@ class Esquina {
 
     method pisadoPor(jardinero) {
         jardinero.girar(giro)
+    }
+}
+
+// Pincha al jardinero: si las pisa, pierde el nivel y hay que reintentar
+class Espinas {
+    const property position
+
+    method image() = assetsManager.espinas()
+
+    method esTraspasable() = true
+
+    method pisadoPor(jardinero) {
+        jardinero.pincharse()
+    }
+}
+
+// Se puede pisar y frena el deslizamiento: una vez arriba, el jardinero sube y baja
+// de a un escalón por vez. Si se mueve para los costados se baja y vuelve a deslizarse.
+class Escalera {
+    const property position
+
+    method image() = assetsManager.escalera()
+
+    method esTraspasable() = true
+
+    method pisadoPor(jardinero) {
+        jardinero.subirseAEscalera()
+    }
+}
+
+// Un túnel de topo. Los agujeros se emparejan de a dos en el orden en que aparecen en
+// el mapa, y el jardinero que cae en uno sale por el otro sin cortar el movimiento.
+class Agujero {
+    const property position
+
+    // Tiene 0 o 1 agujero adentro: el otro extremo del túnel. Es una lista y no un
+    // "pareja o nada" para no tener que preguntar si existe: si el nivel dejó un
+    // agujero sin pareja, el forEach no hace nada y listo.
+    const parejas = []
+
+    method emparejarCon(otroAgujero) { parejas.add(otroAgujero) }
+
+    method image() = assetsManager.agujero()
+
+    method esTraspasable() = true
+
+    method pisadoPor(jardinero) {
+        parejas.forEach({ otroAgujero => jardinero.caerEn(otroAgujero.position()) })
     }
 }
