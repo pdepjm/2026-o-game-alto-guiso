@@ -119,9 +119,10 @@ object jardinero {
         framesTranscurridos = 0
     }
 
-    // Lo llaman las espinas
-    method pincharse() {
-        partida.perder()
+    // Lo llaman las espinas y el vidrio rajado. El culpable es el que sabe que cartel
+    // de derrota mostrar, asi que se lo pasamos a la partida tal cual.
+    method morir(culpable) {
+        partida.perder(culpable)
     }
 
     method recoger(semilla) { semillaEnMano = semilla }

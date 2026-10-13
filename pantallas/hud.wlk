@@ -103,13 +103,19 @@ object cartelDeVictoria {
     }
 }
 
-// El cartel que aparece al clavarse con las espinas. Es más simple que el de victoria:
-// no muestra ni tiempo ni nota, así que es una sola imagen con todo el texto adentro.
+// El cartel que aparece al perder. Es más simple que el de victoria: no muestra ni
+// tiempo ni nota, así que es una sola imagen con todo el texto adentro. Hay una por
+// motivo, y la elige el bloque que mató al jardinero.
 object cartelDeDerrota {
-    method position() = game.at(20, 13)
-    method image() = assetsManager.cartelDerrota()
+    // La imagen la pone el bloque que mato al jardinero
+    var property image = assetsManager.cartelDerrotaEspinas()
 
-    method mostrar() { game.addVisual(self) }
+    method position() = game.at(20, 13)
+
+    method mostrar(unaImagen) {
+        image = unaImagen
+        game.addVisual(self)
+    }
 
     method ocultar() { if (game.hasVisual(self)) game.removeVisual(self) }
 }

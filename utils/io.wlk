@@ -10,6 +10,8 @@ object entradaTeclado {
     keyboard.num1().onPressDo { navegador.actual().presionarNivel(1) }
     keyboard.num2().onPressDo { navegador.actual().presionarNivel(2) }
     keyboard.num3().onPressDo { navegador.actual().presionarNivel(3) }
+    keyboard.num4().onPressDo { navegador.actual().presionarNivel(4) }
+    keyboard.num5().onPressDo { navegador.actual().presionarNivel(5) }
 
     keyboard.up().onPressDo { navegador.actual().presionarDireccion(arriba) }
     keyboard.down().onPressDo { navegador.actual().presionarDireccion(abajo) }

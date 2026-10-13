@@ -77,6 +77,7 @@ object partida {
         if (letra == "B") self.agregar(new CharcoDeBarro(position = posicion))
         if (letra == "X") self.agregar(new Espinas(position = posicion))
         if (letra == "E") self.agregar(new Escalera(position = posicion))
+        if (letra == "V") self.agregar(new Vidrio(position = posicion))
         if (letra == "H") self.ponerAgujero(posicion)
         if (letra == "D") self.agregar(new Esquina(position = posicion, giro = giroDerecha))
         if (letra == "I") self.agregar(new Esquina(position = posicion, giro = giroIzquierda))
@@ -136,12 +137,13 @@ object partida {
         cartelDeVictoria.mostrar(self.nota())
     }
 
-    // Lo llama el jardinero cuando se clava con las espinas
-    method perder() {
+    // Lo llama el jardinero cuando lo mata algun bloque. El culpable decide que cartel
+    // se muestra: no es lo mismo clavarse con las espinas que caerse por el vidrio.
+    method perder(culpable) {
         perdido = true
         jardinero.frenar()
         cronometro.parar()
-        cartelDeDerrota.mostrar()
+        cartelDeDerrota.mostrar(culpable.imagenDeDerrota())
     }
 
     method nota() = nivel.notaPara(cronometro.segundos())

@@ -7,6 +7,8 @@ import niveles.nivel.*
 import pantallas.hud.*
 import juego.manoDelJardinero.*
 import niveles.mapa3.*
+import niveles.mapa4.*
+import niveles.mapa5.*
 import juego.escalaTablero.*
 import utils.manager.*
 
@@ -485,5 +487,85 @@ describe "Los agujeros de topo" {
   test "salir de un agujero no lo vuelve a meter en el otro" {
     self.deslizar(derecha)
     assert.notThat(escalaTablero.posicionCelda(3, 3) == jardinero.position())
+  }
+}
+
+const mapaConVidrio = new Nivel(
+  numero = 97,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
+    "#######",
+    "#J V  #",
+    "#     #",
+    "#    r#",
+    "#######"
+  ]
+)
+
+describe "El piso de vidrio" {
+
+  method initialize() {
+    game.width(7 * escalaTablero.factor())
+    game.height(5 * escalaTablero.factor())
+    partida.nivel(mapaConVidrio)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
+  }
+
+  method vidrio() = partida.elementosEn(escalaTablero.posicionCelda(3, 3)).first()
+
+  test "la primera pasada solo raja el vidrio" {
+    self.deslizar(derecha)
+    assert.that(self.vidrio().rajado())
+    assert.notThat(partida.perdido())
+    assert.equals(assetsManager.vidrioRoto(), self.vidrio().image())
+  }
+
+  test "volver a pasar por el vidrio rajado hace perder" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    assert.that(partida.perdido())
+  }
+
+  test "el cartel de derrota del vidrio no es el de las espinas" {
+    self.deslizar(derecha)
+    self.deslizar(izquierda)
+    assert.equals(assetsManager.cartelDerrotaVidrio(), cartelDeDerrota.image())
+  }
+}
+
+// Los dos niveles nuevos se juegan de punta a punta, para que no se nos escape un nivel
+// imposible de ganar si alguien toca el mapa.
+describe "Los niveles nuevos se pueden ganar" {
+
+  method initialize() {
+    game.width(15 * escalaTablero.factor())
+    game.height(9 * escalaTablero.factor())
+  }
+
+  method jugar(direcciones) {
+    direcciones.forEach({ direccion =>
+      jardinero.mover(direccion)
+      (1 .. 20).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
+    })
+  }
+
+  test "el nivel 4 se gana con la escalera" {
+    partida.nivel(mapa4)
+    partida.mostrar()
+    self.jugar([abajo, derecha, arriba, arriba, arriba, abajo, abajo, abajo, derecha, arriba])
+    assert.that(partida.ganado())
+  }
+
+  test "el nivel 5 se gana usando los agujeros y el vidrio" {
+    partida.nivel(mapa5)
+    partida.mostrar()
+    self.jugar([derecha, izquierda, abajo, izquierda, derecha, abajo, izquierda, arriba, derecha, izquierda, abajo, derecha])
+    assert.that(partida.ganado())
   }
 }

@@ -7,6 +7,8 @@ import juego.partida.*
 import niveles.mapa1.*
 import niveles.mapa2.*
 import niveles.mapa3.*
+import niveles.mapa4.*
+import niveles.mapa5.*
 import juego.escalaTablero.*
 
 // El cartel de un nivel en el selector. Su imagen no es fija: se la pide al nivel,
@@ -20,12 +22,16 @@ class BotonDeNivel {
 
 object selectorDeNiveles {
     // Los niveles, en el mismo orden que los botones: la tecla 1 elige el primero
-    const property niveles = [mapa1, mapa2, mapa3]
+    const property niveles = [mapa1, mapa2, mapa3, mapa4, mapa5]
 
+    // Tres carteles arriba y dos abajo, centrados. Las posiciones van en subceldas
+    // (game.at) porque la interfaz se acomoda mas fino que una celda del tablero.
     const botones = [
-        new BotonDeNivel(position = escalaTablero.posicionCelda(2, 7), nivel = mapa1),
-        new BotonDeNivel(position = escalaTablero.posicionCelda(9, 7), nivel = mapa2),
-        new BotonDeNivel(position = escalaTablero.posicionCelda(16, 7), nivel = mapa3)
+        new BotonDeNivel(position = game.at(6, 28), nivel = mapa1),
+        new BotonDeNivel(position = game.at(34, 28), nivel = mapa2),
+        new BotonDeNivel(position = game.at(62, 28), nivel = mapa3),
+        new BotonDeNivel(position = game.at(20, 16), nivel = mapa4),
+        new BotonDeNivel(position = game.at(48, 16), nivel = mapa5)
     ]
 
     const botonVolver = new Boton(position = game.at(2, 42), image = assetsManager.botonVolver())

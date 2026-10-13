@@ -6,6 +6,8 @@ import juego.partida.*
 import niveles.mapa1.*
 import niveles.mapa2.*
 import niveles.mapa3.*
+import niveles.mapa4.*
+import niveles.mapa5.*
 import juego.jardinero.*
 import juego.direcciones.*
 import juego.escalaTablero.*
@@ -93,5 +95,17 @@ describe "Navegación entre pantallas" {
     mapa3.desbloquear()
     navegador.actual().presionarNivel(3)
     assert.equals(6, partida.cruces().size())
+  }
+
+  test "los cinco niveles estan en el selector y solo el primero arranca abierto" {
+    assert.equals(5, selectorDeNiveles.niveles().size())
+    assert.that(mapa1.desbloqueado())
+    assert.notThat(mapa4.desbloqueado())
+    assert.notThat(mapa5.desbloqueado())
+  }
+
+  test "al completar el nivel 4 se desbloquea el 5" {
+    selectorDeNiveles.desbloquearSiguienteA(mapa4)
+    assert.that(mapa5.desbloqueado())
   }
 }

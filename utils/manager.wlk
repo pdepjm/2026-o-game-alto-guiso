@@ -12,7 +12,8 @@ object assetsManager {
     method botonDeNivel(numero) = "UI/boton_nivel" + numero + ".png"
     method botonBloqueado(numero) = "UI/boton_nivel" + numero + "_bloqueado.png"
     method cartelVictoria() = "UI/cartel_victoria.png"
-    method cartelDerrota() = "UI/cartel_derrota.png"
+    method cartelDerrotaEspinas() = "UI/cartel_derrota_espinas.png"
+    method cartelDerrotaVidrio() = "UI/cartel_derrota_vidrio.png"
     method tituloDelJuego() = "UI/titulo.png"
 
     // Las teclas de cada pantalla y el cronometro vienen con el texto dibujado adentro,

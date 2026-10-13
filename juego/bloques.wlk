@@ -70,8 +70,11 @@ class Espinas {
     method esTraspasable() = true
 
     method pisadoPor(jardinero) {
-        jardinero.pincharse()
+        jardinero.morir(self)
     }
+
+    // Cada bloque que puede matar al jardinero dice como se ve su cartel de derrota
+    method imagenDeDerrota() = assetsManager.cartelDerrotaEspinas()
 }
 
 // Se puede pisar y frena el deslizamiento: una vez arriba, el jardinero sube y baja
@@ -107,4 +110,22 @@ class Agujero {
     method pisadoPor(jardinero) {
         parejas.forEach({ otroAgujero => jardinero.caerEn(otroAgujero.position()) })
     }
+}
+
+// Un piso de vidrio: aguanta una sola pasada. La primera vez que lo pisan queda rajado,
+// y si el jardinero vuelve a pasar por ahí se cae y pierde el nivel.
+class Vidrio {
+    const property position
+    var property rajado = false
+
+    method image() = if (rajado) assetsManager.vidrioRoto() else assetsManager.vidrio()
+
+    // Siempre se puede pisar: lo que cambia es qué pasa al pisarlo
+    method esTraspasable() = true
+
+    method pisadoPor(jardinero) {
+        if (rajado) jardinero.morir(self) else rajado = true
+    }
+
+    method imagenDeDerrota() = assetsManager.cartelDerrotaVidrio()
 }
