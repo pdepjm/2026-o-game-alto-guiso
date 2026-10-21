@@ -1,53 +1,58 @@
 import wollok.game.*
 import utils.manager.*
+import juego.bloques.*
 
 // Las tres semillas hacen exactamente lo mismo: lo único que cambia son sus letras
 // en el mapa y sus imágenes. Por eso son instancias de una misma clase y no tres
 // objetos con el código repetido.
-class Semilla {
-    const property letra
-    const property letraCruz
-    const property image
-    const property imagenCruz
-    const property imagenFlor
-    const property imagenEnMano
-    var property position = game.origin()
+
+// Superclase abstracta. Al heredar de Bloque, gana automaticamente la variable 'position' y el metodo 'esTraspasable() = true'
+class Semilla inherits Bloque {
 
     // El jardinero la levanta al pasar por encima
-    method pisadoPor(jardinero) { jardinero.recoger(self) }
+    override method pisadoPor(jardinero) { 
+        jardinero.recoger(self)
+    }
 
     // Plantarse es cosa de la semilla: la cruz después decide si es de su color
-    method aplicarEn(cruz) { cruz.recibir(self) }
+    method aplicarEn(cruz) { 
+        cruz.recibir(self) 
+    }
 
-    method esTraspasable() = true
+    method letra()
+    method letraCruz()
+    method image()
+    method imagenCruz()
+    method imagenFlor()
+    method imagenEnMano()
 }
 
-const semillaRoja = new Semilla(
-    letra = "R",
-    letraCruz = "r",
-    image = assetsManager.semillaRoja(),
-    imagenCruz = assetsManager.cruzRoja(),
-    imagenFlor = assetsManager.florRoja(),
-    imagenEnMano = assetsManager.manoRoja()
-)
+class semillaRoja inherits Semilla {
+    override method image() = assetsManager.semillaRoja()
+    override method letra() = "R"
+    override method letraCruz() = "r"
+    override method imagenCruz() = assetsManager.cruzRoja()
+    override method imagenFlor() = assetsManager.florRoja()
+    override method imagenEnMano() = assetsManager.manoRoja()
+}
 
-const semillaAzul = new Semilla(
-    letra = "A",
-    letraCruz = "a",
-    image = assetsManager.semillaAzul(),
-    imagenCruz = assetsManager.cruzAzul(),
-    imagenFlor = assetsManager.florAzul(),
-    imagenEnMano = assetsManager.manoAzul()
-)
+class SemillaAzul inherits Semilla {
+    override method image() = assetsManager.semillaAzul()
+    override method letra() = "A"
+    override method letraCruz() = "a"
+    override method imagenCruz() = assetsManager.cruzAzul()
+    override method imagenFlor() = assetsManager.florAzul()
+    override method imagenEnMano() = assetsManager.manoAzul()
+}
 
-const semillaAmarilla = new Semilla(
-    letra = "M",
-    letraCruz = "m",
-    image = assetsManager.semillaAmarilla(),
-    imagenCruz = assetsManager.cruzAmarilla(),
-    imagenFlor = assetsManager.florAmarilla(),
-    imagenEnMano = assetsManager.manoAmarilla()
-)
+class SemillaAmarilla inherits Semilla {
+    override method image() = assetsManager.semillaAmarilla()
+    override method letra() = "M"
+    override method letraCruz() = "m"
+    override method imagenCruz() = assetsManager.cruzAmarilla()
+    override method imagenFlor() = assetsManager.florAmarilla()
+    override method imagenEnMano() = assetsManager.manoAmarilla()
+}
 
 // La mano vacía del jardinero. Es un concepto único en el juego, así que es un objeto
 // y no una clase. Al no hacer nada en aplicarEn, nos evita preguntar "¿tiene semilla?".
