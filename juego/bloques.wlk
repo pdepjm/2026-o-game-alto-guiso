@@ -12,64 +12,57 @@ import juego.direcciones.*
 //   pisadoPor(jardinero)  -> qué le pasa al jardinero al pisarlo
 
 // Rodea el jardín y arma el laberinto de cada nivel
-class Valla {
-    var property position // Cada valla va a tener su propia ubicación
 
-    method image() = assetsManager.valla() // Para que cada valla se pueda mostrar
-
-    // Las vallas bloquean el paso
-    method esTraspasable() = false
-
-    // Nunca se la pisa (el jardinero frena antes), pero entiende el mensaje igual que el resto
-    method pisadoPor(jardinero) {}
-}
-
-// Bloquea el paso igual que una valla, pero en el medio del jardín
-class Piedra {
+class Bloque{
     var property position
 
+    // Comportamiento por defecto: la mayoria se puede pisar
+    method esTraspasable() = true
+    
+    // Otro comportamiento por defecto: la mayoria no hace nada al ser pisado
+    method pisadoPor(jardinero){}
+}
+
+
+class Valla inherits Bloque {
+    method image() = assetsManager.valla() // Para que cada valla se pueda mostrar
+
+    // Redefinimos porque la valla no se puede traspasar
+    override method esTraspasable() = false
+}
+
+class Piedra inherits Bloque {
     method image() = assetsManager.piedra()
 
-    method esTraspasable() = false
-
-    method pisadoPor(jardinero) {}
+    // Redefinimos porque la piedra no se puede traspasar
+    override method esTraspasable() = false
 }
 
 // Se puede pisar, no frena el movimiento, pero le arruina la semilla al jardinero
-class CharcoDeBarro {
-    var property position
-
+class CharcoDeBarro inherits Bloque {
     method image() = assetsManager.barro()
 
-    method esTraspasable() = true
-
-    method pisadoPor(jardinero) {
+    // Redefinimos el efecto al pisar
+    override method pisadoPor(jardinero) {
         jardinero.recoger(sinSemilla)
     }
 }
 
-class Esquina {
-    const property position
+class Esquina inherits Bloque {
     const property giro
 
     method image() = giro.imagen()
 
-    method esTraspasable() = true
-
-    method pisadoPor(jardinero) {
+    override method pisadoPor(jardinero) {
         jardinero.girar(giro)
     }
 }
 
 // Pincha al jardinero: si las pisa, pierde el nivel y hay que reintentar
-class Espinas {
-    const property position
-
+class Espinas inherits Bloque {
     method image() = assetsManager.espinas()
 
-    method esTraspasable() = true
-
-    method pisadoPor(jardinero) {
+    override method pisadoPor(jardinero) {
         jardinero.morir(self)
     }
 
@@ -79,23 +72,17 @@ class Espinas {
 
 // Se puede pisar y frena el deslizamiento: una vez arriba, el jardinero sube y baja
 // de a un escalón por vez. Si se mueve para los costados se baja y vuelve a deslizarse.
-class Escalera {
-    const property position
-
+class Escalera inherits Bloque {
     method image() = assetsManager.escalera()
 
-    method esTraspasable() = true
-
-    method pisadoPor(jardinero) {
+    override method pisadoPor(jardinero) {
         jardinero.subirseAEscalera()
     }
 }
 
 // Un túnel de topo. Los agujeros se emparejan de a dos en el orden en que aparecen en
 // el mapa, y el jardinero que cae en uno sale por el otro sin cortar el movimiento.
-class Agujero {
-    const property position
-
+class Agujero inherits Bloque {
     // Tiene 0 o 1 agujero adentro: el otro extremo del túnel. Es una lista y no un
     // "pareja o nada" para no tener que preguntar si existe: si el nivel dejó un
     // agujero sin pareja, el forEach no hace nada y listo.
@@ -105,25 +92,19 @@ class Agujero {
 
     method image() = assetsManager.agujero()
 
-    method esTraspasable() = true
-
-    method pisadoPor(jardinero) {
+    override method pisadoPor(jardinero) {
         parejas.forEach({ otroAgujero => jardinero.caerEn(otroAgujero.position()) })
     }
 }
 
 // Un piso de vidrio: aguanta una sola pasada. La primera vez que lo pisan queda rajado,
 // y si el jardinero vuelve a pasar por ahí se cae y pierde el nivel.
-class Vidrio {
-    const property position
+class Vidrio inherits Bloque{
     var property rajado = false
 
     method image() = if (rajado) assetsManager.vidrioRoto() else assetsManager.vidrio()
 
-    // Siempre se puede pisar: lo que cambia es qué pasa al pisarlo
-    method esTraspasable() = true
-
-    method pisadoPor(jardinero) {
+    override method pisadoPor(jardinero) {
         if (rajado) jardinero.morir(self) else rajado = true
     }
 
