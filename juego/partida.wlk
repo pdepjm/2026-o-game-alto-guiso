@@ -26,7 +26,10 @@ object partida {
     // están en elementosDelNivel, solo que acá las tenemos a mano.
     const cruces = []
 
-    const semillas = [semillaRoja, semillaAzul, semillaAmarilla]
+
+    var semillaR = new semillaRoja()
+    var semillaA = new semillaAzul()
+    var semillaM = new semillaAmarilla()
 
     // Los agujeros de topo se emparejan de a dos en el orden en que aparecen en el mapa.
     // Acá queda el que todavía está esperando su pareja (ninguno o uno).
@@ -55,6 +58,11 @@ object partida {
         agujerosSinPareja.clear()
         ganado = false
         perdido = false
+
+        semillaR = new semillaRoja()
+        semillaA = new semillaAzul()
+        semillaM = new semillaAmarilla()
+
         const filas = nivel.mapa()
         const alto = filas.size()
         const ancho = filas.first().size()
@@ -84,6 +92,11 @@ object partida {
         if (letra == "T") self.agregar(new Esquina(position = posicion, giro = giroIzquierdaSuperiorDerecha))
         if (letra == "O") self.agregar(new Esquina(position = posicion, giro = giroIzquierdaInferiorDerecha))
         if (letra == "J") jardinero.empezarEn(posicion)
+
+        if (letra == "R") { semillaR.position(posicion); self.ponerSemilla(semillaR) }
+        if (letra == "A") { semillaA.position(posicion); self.ponerSemilla(semillaA) }
+        if (letra == "M") { semillaM.position(posicion); self.ponerSemilla(semillaM) }
+
         semillas.filter({ semilla => semilla.letra() == letra }).forEach({ semilla => self.ponerSemilla(semilla, posicion) })
         semillas.filter({ semilla => semilla.letraCruz() == letra }).forEach({ semilla => self.ponerCruz(semilla, posicion) })
     }
