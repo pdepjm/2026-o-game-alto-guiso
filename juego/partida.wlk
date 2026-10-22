@@ -67,7 +67,7 @@ object partida {
         agujerosSinPareja.clear()
         ganado = false
         perdido = false
-
+        
         const filas = nivel.mapa()
         const alto = filas.size()
         const ancho = filas.first().size()
