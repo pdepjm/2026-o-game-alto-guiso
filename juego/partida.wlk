@@ -26,6 +26,9 @@ object partida {
     // están en elementosDelNivel, solo que acá las tenemos a mano.
     const cruces = []
 
+    // Índice por posición para evitar recorrer todos los elementos en cada movimiento.
+    var elementosPorPosicion = new Dictionary()
+
     // Las tres semillas del juego. Es una sola lista para que ubicar() pueda preguntarle
     // a cada una si la letra del mapa es la suya, sin tener un if por color.
     const semillas = [semillaRoja, semillaAzul, semillaAmarilla]
@@ -47,12 +50,19 @@ object partida {
         navegador.irA(self)
     }
 
-    method imagenDeTeclas() = assetsManager.teclasDeLaPartida()
+    method imagenDeTeclas() =
+        if (!ganado) assetsManager.teclasDeLaPartida()
+        else if (self.hayNivelSiguiente()) assetsManager.teclasDeVictoria()
+        else assetsManager.teclasDeVictoriaFinal()
+
+    method hayNivelSiguiente() =
+        selectorDeNiveles.niveles().any({ otro => otro.numero() == nivel.numero() + 1 })
 
     // ----- Armado del nivel -----
 
     method armar() {
         elementosDelNivel.clear()
+        elementosPorPosicion = new Dictionary()
         cruces.clear()
         agujerosSinPareja.clear()
         ganado = false
@@ -92,7 +102,13 @@ object partida {
         semillas.filter({ semilla => semilla.letraCruz() == letra }).forEach({ semilla => self.ponerCruz(semilla, posicion) })
     }
 
-    method agregar(elemento) { elementosDelNivel.add(elemento) }
+    method agregar(elemento) {
+        elementosDelNivel.add(elemento)
+        const clave = elemento.position().toString()
+        const elementosEnPosicion = elementosPorPosicion.getOrElse(clave, { => [] })
+        elementosEnPosicion.add(elemento)
+        elementosPorPosicion.put(clave, elementosEnPosicion)
+    }
 
     method ponerAgujero(posicion) {
         const nuevo = new Agujero(position = posicion)
@@ -121,7 +137,7 @@ object partida {
     // Cada elemento decide si se lo puede atravesar: las vallas y las piedras no, el resto sí
     method puedeEntrarA(posicion) = self.elementosEn(posicion).all({ elemento => elemento.esTraspasable() })
 
-    method elementosEn(posicion) = elementosDelNivel.filter({ elemento => elemento.position() == posicion })
+    method elementosEn(posicion) = elementosPorPosicion.getOrElse(posicion.toString(), { => [] })
 
     method todoPlantado() = cruces.all({ cruz => cruz.florecida() })
 
@@ -186,4 +202,11 @@ object partida {
     method presionarVolver() { navegador.irA(selectorDeNiveles) }
     method presionarJugar() {}
     method presionarNivel(numero) {}
+    method presionarSiguiente() {
+        if (ganado) {
+            selectorDeNiveles.niveles()
+                .filter({ otro => otro.numero() == nivel.numero() + 1 })
+                .forEach({ siguiente => self.jugar(siguiente) })
+        }
+    }
 }

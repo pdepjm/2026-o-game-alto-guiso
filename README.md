@@ -9,16 +9,18 @@
 #### El juego
 
 Un jardinero recorre el jardín para plantar flores. Una vez que arranca en una dirección no frena hasta
-chocar contra una cerca o una piedra. Las rampas del jardín pueden cambiar su dirección hacia la
-derecha o la izquierda; si el giro apunta contra una pared, rebota hacia atrás. El movimiento entre
-celdas es animado. Tiene que recoger las semillas de colores y pasar por las cruces del mismo color:
-al pasar, la cruz se convierte en la flor de ese color. Se gana cuando todas las cruces tienen su flor.
+chocar contra una cerca o una piedra. Las esquinas cambian el eje de movimiento según su orientación;
+si el paso de salida está bloqueado, el jardinero se detiene en la esquina. El movimiento entre celdas
+es animado. Tiene que recoger las semillas de colores y pasar por las cruces del mismo color: al pasar,
+la cruz se convierte en la flor de ese color. Se gana cuando todas las cruces tienen su flor.
 
 - Agarrar una semilla reemplaza la que tenía en la mano (la bolsa de semillas queda en su lugar).
   Un ícono del color de la semilla se dibuja sobre el jardinero para saber qué lleva.
 - Pasar por una cruz de otro color, o sin semilla, no hace nada.
 - Hay cinco niveles. Al empezar solo está desbloqueado el nivel 1, y cada nivel completado
   desbloquea el siguiente.
+- Al completar un nivel, se puede continuar con `N` si hay un nivel siguiente.
+- La opción `C` del menú abre la pantalla de configuración; `V` vuelve al menú.
 - Un cronómetro cuenta lo que tarda cada nivel y al terminar da una nota de S a D, según el
   tiempo ideal que define cada nivel.
 - Abajo de todo siempre se ven las teclas que se pueden apretar en esa pantalla.
@@ -30,7 +32,9 @@ al pasar, la cruz se convierte en la flor de ese color. Se gana cuando todas las
 | Tecla | Acción |
 |---|---|
 | J | Jugar (desde el menú) |
+| C | Abrir configuración (desde el menú) |
 | 1 a 5 | Elegir nivel |
+| N | Siguiente nivel (al completar un nivel) |
 | Flechas | Mover al jardinero |
 | R | Reiniciar el nivel |
 | V | Volver |

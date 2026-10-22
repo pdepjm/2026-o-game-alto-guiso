@@ -1,5 +1,6 @@
 import wollok.game.*
 import pantallas.menuPrincipal.*
+import pantallas.fondoMenu.*
 import pantallas.navegador.*
 import pantallas.boton.*
 import utils.manager.*
@@ -69,4 +70,5 @@ object selectorDeNiveles {
     method presionarVolver() { navegador.irA(menuPrincipal) }
     method presionarDireccion(direccion) {}
     method presionarReiniciar() {}
+    method presionarSiguiente() {}
 }

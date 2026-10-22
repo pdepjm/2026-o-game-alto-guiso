@@ -130,7 +130,6 @@ object jardinero {
     method plantarEn(cruz) { semillaEnMano.aplicarEn(cruz) }
 
     method girar(giro) {
-        const giroElegido = giro.aplicar(direccion)
-        direccion = if (partida.puedeEntrarA(giroElegido.siguiente(posicionLogica))) giroElegido else direccion.opuesta()
+        direccion = giro.aplicar(direccion)
     }
 }

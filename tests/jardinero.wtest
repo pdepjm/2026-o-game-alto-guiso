@@ -26,6 +26,19 @@ const mapaDePrueba = new Nivel(
   ]
 )
 
+const mapaConEsquinaBloqueada = new Nivel(
+  numero = 92,
+  tiempoIdeal = 10,
+  desbloqueado = true,
+  mapa = [
+    "#######",
+    "#     #",
+    "#JD  ##",
+    "# #   #",
+    "#######"
+  ]
+)
+
 describe "El jardinero en el jardín" {
 
   method initialize() {
@@ -241,6 +254,67 @@ describe "Las esquinas del jardín" {
     assert.equals(arriba, jardinero.direccion())
     assert.notThat(jardinero.estaDeslizando())
   }
+
+  test "la esquina mantiene el cambio de eje aunque el paso de salida esté bloqueado" {
+    partida.nivel(mapaConEsquinaBloqueada)
+    partida.mostrar()
+
+    self.deslizar(derecha)
+
+    assert.equals(escalaTablero.posicionCelda(2, 2), jardinero.position())
+    assert.equals(abajo, jardinero.direccion())
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "cada orientación cambia entre los dos ejes para cualquier sentido de entrada" {
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(arriba)
+    jardinero.frenar()
+    jardinero.girar(giroDerecha)
+    assert.equals(derecha, jardinero.direccion())
+
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(abajo)
+    jardinero.frenar()
+    jardinero.girar(giroDerecha)
+    assert.equals(izquierda, jardinero.direccion())
+
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(izquierda)
+    jardinero.frenar()
+    jardinero.girar(giroDerecha)
+    assert.equals(arriba, jardinero.direccion())
+
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(derecha)
+    jardinero.frenar()
+    jardinero.girar(giroDerecha)
+    assert.equals(abajo, jardinero.direccion())
+
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(arriba)
+    jardinero.frenar()
+    jardinero.girar(giroIzquierda)
+    assert.equals(izquierda, jardinero.direccion())
+
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(abajo)
+    jardinero.frenar()
+    jardinero.girar(giroIzquierda)
+    assert.equals(derecha, jardinero.direccion())
+
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(izquierda)
+    jardinero.frenar()
+    jardinero.girar(giroIzquierda)
+    assert.equals(abajo, jardinero.direccion())
+
+    jardinero.empezarEn(game.at(100, 100))
+    jardinero.mover(derecha)
+    jardinero.frenar()
+    jardinero.girar(giroIzquierda)
+    assert.equals(arriba, jardinero.direccion())
+  }
 }
 
 describe "Las esquinas del mapa 3" {
@@ -257,25 +331,26 @@ describe "Las esquinas del mapa 3" {
     (1 .. 50).forEach({ paso => jardinero.avanzarUnPaso() })
   }
 
-  test "la esquina superior derecha del mapa 3 gira hacia la izquierda" {
+  test "la esquina superior derecha cambia el eje y se detiene ante una pared" {
     jardinero.empezarEn(escalaTablero.posicionCelda(15, 8))
     jardinero.mover(derecha)
     jardinero.avanzarUnPaso()
 
     assert.equals(escalaTablero.posicionCelda(16, 8), jardinero.position())
     assert.that(jardinero.estaDeslizando())
-    self.deslizar(derecha)
-    assert.equals(escalaTablero.posicionCelda(4, 8), jardinero.position())
-    assert.equals(izquierda, jardinero.direccion())
+    assert.equals(arriba, jardinero.direccion())
+    jardinero.avanzarUnPaso()
+    assert.equals(escalaTablero.posicionCelda(16, 8), jardinero.position())
+    assert.equals(arriba, jardinero.direccion())
     assert.notThat(jardinero.estaDeslizando())
   }
 
   test "se pueden florecer todas las cruces siguiendo la ruta del mapa 3" {
-    self.deslizar(derecha)
-    assert.equals(semillaRoja, jardinero.semillaEnMano())
     self.deslizar(abajo)
     assert.equals(semillaAmarilla, jardinero.semillaEnMano())
     self.deslizar(derecha)
+    assert.equals(semillaRoja, jardinero.semillaEnMano())
+    self.deslizar(abajo)
 
     assert.that(partida.ganado())
     assert.that(partida.cruces().all({ cruz => cruz.florecida() }))

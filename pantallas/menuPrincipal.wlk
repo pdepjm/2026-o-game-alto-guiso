@@ -2,14 +2,10 @@ import wollok.game.*
 import utils.manager.*
 import pantallas.navegador.*
 import pantallas.selectorDeNiveles.*
+import pantallas.configuracion.*
+import pantallas.fondoMenu.*
 import pantallas.boton.*
 import juego.escalaTablero.*
-
-// El fondo de las pantallas de menú. Es único, por eso es un objeto y no una instancia.
-object fondoMenu {
-    method position() = game.origin()
-    method image() = assetsManager.fondoMenu()
-}
 
 // El título del juego, arriba del menú.
 object tituloDelJuego {
@@ -41,8 +37,10 @@ object menuPrincipal {
     }
 
     method presionarJugar() { navegador.irA(selectorDeNiveles) }
+    method presionarConfiguracion() { navegador.irA(configuracion) }
     method presionarVolver() {}
     method presionarNivel(numero) {}
     method presionarDireccion(direccion) {}
     method presionarReiniciar() {}
+    method presionarSiguiente() {}
 }

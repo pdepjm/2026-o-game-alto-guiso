@@ -5,7 +5,9 @@ object entradaTeclado {
 
   method entradasDelTeclado(){
     keyboard.j().onPressDo { navegador.actual().presionarJugar() }
+    keyboard.c().onPressDo { navegador.actual().presionarConfiguracion() }
     keyboard.v().onPressDo { navegador.actual().presionarVolver() }
+    keyboard.n().onPressDo { navegador.actual().presionarSiguiente() }
     keyboard.r().onPressDo { navegador.actual().presionarReiniciar() }
     keyboard.num1().onPressDo { navegador.actual().presionarNivel(1) }
     keyboard.num2().onPressDo { navegador.actual().presionarNivel(2) }
@@ -18,7 +20,6 @@ object entradaTeclado {
     keyboard.left().onPressDo { navegador.actual().presionarDireccion(izquierda) }
     keyboard.right().onPressDo { navegador.actual().presionarDireccion(derecha) }
 
-    keyboard.c().onPressDo {}
     keyboard.q().onPressDo { game.stop() }
   }
 }

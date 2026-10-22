@@ -1,6 +1,8 @@
 import wollok.game.*
 import pantallas.navegador.*
 import pantallas.menuPrincipal.*
+import pantallas.configuracion.*
+import pantallas.hud.*
 import pantallas.selectorDeNiveles.*
 import juego.partida.*
 import niveles.mapa1.*
@@ -9,8 +11,10 @@ import niveles.mapa3.*
 import niveles.mapa4.*
 import niveles.mapa5.*
 import juego.jardinero.*
+import juego.manoDelJardinero.*
 import juego.direcciones.*
 import juego.escalaTablero.*
+import utils.manager.*
 
 describe "Navegación entre pantallas" {
 
@@ -81,6 +85,49 @@ describe "Navegación entre pantallas" {
     navegador.actual().presionarJugar()
     navegador.actual().presionarVolver()
     assert.equals(menuPrincipal, navegador.actual())
+  }
+
+  test "desde el menú, C abre configuración y V vuelve al menú" {
+    menuPrincipal.presionarConfiguracion()
+    assert.equals(configuracion, navegador.actual())
+    assert.equals(assetsManager.teclasDeConfiguracion(), configuracion.imagenDeTeclas())
+    configuracion.presionarVolver()
+    assert.equals(menuPrincipal, navegador.actual())
+  }
+
+  test "al ganar un nivel, N inicia el siguiente nivel" {
+    partida.jugar(mapa1)
+    partida.ganar()
+    assert.equals(assetsManager.teclasDeVictoria(), partida.imagenDeTeclas())
+    partida.presionarSiguiente()
+    assert.equals(mapa2, partida.nivel())
+    assert.equals(partida, navegador.actual())
+  }
+
+  test "al pasar al siguiente nivel se limpian los objetos del nivel anterior" {
+    mapa2.desbloquear()
+    partida.jugar(mapa1)
+    const objetosAnteriores = []
+    partida.elementos().forEach({ elemento => objetosAnteriores.add(elemento) })
+
+    partida.ganar()
+    partida.presionarSiguiente()
+
+    partida.elementos().forEach({ elemento => assert.that(game.hasVisual(elemento)) })
+    objetosAnteriores
+      .filter({ anterior => !partida.elementos().contains(anterior) })
+      .forEach({ anterior => assert.notThat(game.hasVisual(anterior)) })
+    assert.notThat(game.hasVisual(cartelDeVictoria))
+    assert.that(game.hasVisual(jardinero))
+    assert.that(game.hasVisual(manoDelJardinero))
+  }
+
+  test "al ganar el último nivel no hay un nivel siguiente" {
+    partida.jugar(mapa5)
+    partida.ganar()
+    assert.equals(assetsManager.teclasDeVictoriaFinal(), partida.imagenDeTeclas())
+    partida.presionarSiguiente()
+    assert.equals(mapa5, partida.nivel())
   }
 
   test "cada nivel usa la cantidad de cruces de su mapa" {
