@@ -26,8 +26,6 @@ object partida {
     // están en elementosDelNivel, solo que acá las tenemos a mano.
     const cruces = []
 
-    // Las tres semillas del juego. Es una sola lista para que ubicar() pueda preguntarle
-    // a cada una si la letra del mapa es la suya, sin tener un if por color.
     const semillas = [semillaRoja, semillaAzul, semillaAmarilla]
 
     // Los agujeros de topo se emparejan de a dos en el orden en que aparecen en el mapa.
@@ -57,7 +55,7 @@ object partida {
         agujerosSinPareja.clear()
         ganado = false
         perdido = false
-
+        
         const filas = nivel.mapa()
         const alto = filas.size()
         const ancho = filas.first().size()
