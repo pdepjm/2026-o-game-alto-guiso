@@ -9,7 +9,7 @@
 #### El juego
 
 Un jardinero recorre el jardín para plantar flores. Una vez que arranca en una dirección no frena hasta
-chocar contra una cerca o una piedra. Las esquinas del jardín pueden cambiar su dirección hacia la
+chocar contra una cerca o una piedra. Las rampas del jardín pueden cambiar su dirección hacia la
 derecha o la izquierda; si el giro apunta contra una pared, rebota hacia atrás. El movimiento entre
 celdas es animado. Tiene que recoger las semillas de colores y pasar por las cruces del mismo color:
 al pasar, la cruz se convierte en la flor de ese color. Se gana cuando todas las cruces tienen su flor.
@@ -17,17 +17,20 @@ al pasar, la cruz se convierte en la flor de ese color. Se gana cuando todas las
 - Agarrar una semilla reemplaza la que tenía en la mano (la bolsa de semillas queda en su lugar).
   Un ícono del color de la semilla se dibuja sobre el jardinero para saber qué lleva.
 - Pasar por una cruz de otro color, o sin semilla, no hace nada.
-- Al empezar solo está desbloqueado el nivel 1. Cada nivel completado desbloquea el siguiente.
+- Hay cinco niveles. Al empezar solo está desbloqueado el nivel 1, y cada nivel completado
+  desbloquea el siguiente.
 - Un cronómetro cuenta lo que tarda cada nivel y al terminar da una nota de S a D, según el
   tiempo ideal que define cada nivel.
 - Abajo de todo siempre se ven las teclas que se pueden apretar en esa pantalla.
+- También se puede perder: las espinas y el vidrio ya rajado matan al jardinero. Aparece un cartel
+  y con `R` se reintenta el nivel.
 
 #### Controles
 
 | Tecla | Acción |
 |---|---|
 | J | Jugar (desde el menú) |
-| 1, 2, 3 | Elegir nivel |
+| 1 a 5 | Elegir nivel |
 | Flechas | Mover al jardinero |
 | R | Reiniciar el nivel |
 | V | Volver |
@@ -45,7 +48,9 @@ wollok test
 
 #### Agregar o cambiar un nivel
 
-Cada nivel es un objeto en `niveles/` con un `mapa()` dibujado con texto:
+Cada nivel es una instancia de la clase `Nivel` (`niveles/nivel.wlk`) que vive en `niveles/`. Sabe su
+número, cuántos segundos se consideran una vuelta perfecta, si está desbloqueado y su `mapa`, que es un
+dibujo hecho con texto:
 
 | Letra | Qué es |
 |---|---|
@@ -55,14 +60,22 @@ Cada nivel es un objeto en `niveles/` con un `mapa()` dibujado con texto:
 | `r` `a` `m` | cruz roja, azul, amarilla |
 | `P` | piedra (bloquea el paso) |
 | `B` | charco de barro (se puede pisar, pero arruina la semilla) |
-| `D` | esquina que gira a la derecha |
-| `I` | esquina que gira a la izquierda |
-| `T` | esquina superior derecha que gira a la izquierda |
-| `O` | esquina inferior derecha que gira a la izquierda |
+| `X` | espinas (al pisarlas se pierde el nivel) |
+| `E` | escalera (frena el deslizamiento; parado en ella se sube y se baja de a un escalón) |
+| `H` | agujero de topo (se entra por uno y se sale por el otro) |
+| `V` | piso de vidrio (aguanta una sola pasada: queda rajado y a la segunda se cae) |
+| `D` | rampa que gira a la derecha |
+| `I` | rampa que gira a la izquierda |
+| `T` | rampa superior derecha que gira a la izquierda |
+| `O` | rampa inferior derecha que gira a la izquierda |
 
-Las cercas, las cruces, las piedras, los charcos y las esquinas son instancias de sus clases, así que un mapa
-puede tener todas las que haga falta. La `P` y la `B` funcionan, pero todavía no tienen imagen
-(`assets/Obstaculos/piedra.png` y `barro.png`), así que por ahora no se usan en los niveles.
+Todo lo que se pone en el tablero es una instancia de su clase, así que un mapa puede tener todas las
+que haga falta. Los agujeros de topo se emparejan **de a dos, en el orden en que aparecen en el mapa**:
+el primero con el segundo, el tercero con el cuarto.
 
-El mapa 3 tiene seis cruces y un recorrido circular: las esquinas `T` y `O` desvían al jardinero hacia
-la izquierda y continúan el recorrido. El ícono sobre el jardinero cambia según la semilla que lleva.
+Un nivel nuevo se agrega creando su archivo en `niveles/`, sumándolo a la lista `niveles` de
+`pantallas/selectorDeNiveles.wlk` con su botón, y registrando su tecla en `utils/io.wlk`.
+
+Cuidado al dibujar un mapa: como el jardinero se desliza hasta chocar, es fácil armar un nivel que no se
+pueda ganar. Los niveles 4 y 5 tienen un test que los juega entero con la secuencia de flechas de la
+solución, justamente para que eso no pase desapercibido.
