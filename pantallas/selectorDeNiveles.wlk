@@ -24,6 +24,7 @@ class BotonDeNivel {
 object selectorDeNiveles {
     // Los niveles, en el mismo orden que los botones: la tecla 1 elige el primero
     const property niveles = [mapa1, mapa2, mapa3, mapa4, mapa5]
+    const property nivelesDesbloqueados = [mapa1]
 
     // Tres carteles arriba y dos abajo, centrados. Las posiciones van en subceldas
     // (game.at) porque la interfaz se acomoda mas fino que una celda del tablero.
@@ -54,7 +55,7 @@ object selectorDeNiveles {
     // Deja entrar solo a los niveles desbloqueados
     method presionarNivel(numero) {
         const elegido = niveles.get(numero - 1)
-        if (elegido.desbloqueado()) {
+        if (nivelesDesbloqueados.contains(elegido)) {
             partida.jugar(elegido)
         }
     }
@@ -63,7 +64,14 @@ object selectorDeNiveles {
     // (por ejemplo, al ganar el último), el filter no encuentra nada y no pasa nada.
     method desbloquearSiguienteA(nivel) {
         niveles.filter({ otro => otro.numero() == nivel.numero() + 1 })
-               .forEach({ siguiente => siguiente.desbloquear() })
+               .forEach({ siguiente => self.desbloquear(siguiente) })
+    }
+
+    method desbloquear(nivel) {
+        if (!nivelesDesbloqueados.contains(nivel)) {
+            nivelesDesbloqueados.add(nivel)
+            nivel.desbloquear()
+        }
     }
 
     method presionarJugar() {}

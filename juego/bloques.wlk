@@ -1,5 +1,6 @@
 import wollok.game.*
 import utils.manager.*
+import utils.sonidos.*
 import juego.semillas.*
 import juego.direcciones.*
 
@@ -97,16 +98,27 @@ class Agujero inherits Bloque {
     }
 }
 
+object vidrioEntero {
+    method image() = assetsManager.vidrio()
+    method pisadoPor(vidrio, jardinero) {
+        vidrio.estado(vidrioRajado)
+        sonidos.reproducirSonidoDeHielo()
+    }
+}
+
+object vidrioRajado {
+    method image() = assetsManager.vidrioRoto()
+    method pisadoPor(vidrio, jardinero) { jardinero.morir(vidrio) }
+}
+
 // Un piso de vidrio: aguanta una sola pasada. La primera vez que lo pisan queda rajado,
 // y si el jardinero vuelve a pasar por ahí se cae y pierde el nivel.
 class Vidrio inherits Bloque{
-    var property rajado = false
+    var property estado = vidrioEntero
 
-    method image() = if (rajado) assetsManager.vidrioRoto() else assetsManager.vidrio()
+    method image() = estado.image()
 
-    override method pisadoPor(jardinero) {
-        if (rajado) jardinero.morir(self) else rajado = true
-    }
+    override method pisadoPor(jardinero) { estado.pisadoPor(self, jardinero) }
 
     method imagenDeDerrota() = assetsManager.cartelDerrotaVidrio()
 }

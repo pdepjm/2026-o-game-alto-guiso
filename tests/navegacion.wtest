@@ -10,6 +10,7 @@ import niveles.mapa2.*
 import niveles.mapa3.*
 import niveles.mapa4.*
 import niveles.mapa5.*
+import niveles.nivel.*
 import juego.jardinero.*
 import juego.manoDelJardinero.*
 import juego.direcciones.*
@@ -46,7 +47,8 @@ describe "Navegación entre pantallas" {
   }
 
   test "el nivel 2 arranca bloqueado y no se puede entrar" {
-    assert.notThat(mapa2.desbloqueado())
+    assert.equals(nivelBloqueado, mapa2.estado())
+    assert.notThat(selectorDeNiveles.nivelesDesbloqueados().contains(mapa2))
     navegador.actual().presionarJugar()
     navegador.actual().presionarNivel(2)
     assert.equals(selectorDeNiveles, navegador.actual())
@@ -54,18 +56,19 @@ describe "Navegación entre pantallas" {
 
   test "al completar un nivel se desbloquea el siguiente" {
     selectorDeNiveles.desbloquearSiguienteA(mapa1)
-    assert.that(mapa2.desbloqueado())
+    assert.that(selectorDeNiveles.nivelesDesbloqueados().contains(mapa2))
+    assert.equals(nivelDesbloqueado, mapa2.estado())
   }
 
   test "una vez desbloqueado, se puede entrar al nivel 2" {
-    mapa2.desbloquear()
+    selectorDeNiveles.desbloquear(mapa2)
     navegador.actual().presionarJugar()
     navegador.actual().presionarNivel(2)
     assert.equals(mapa2, partida.nivel())
   }
 
   test "desde el selector se elige el mapa 3 con la tecla 3" {
-    mapa3.desbloquear()
+    selectorDeNiveles.desbloquear(mapa3)
     navegador.actual().presionarJugar()
     navegador.actual().presionarNivel(3)
     assert.equals(partida, navegador.actual())
@@ -105,7 +108,7 @@ describe "Navegación entre pantallas" {
   }
 
   test "al pasar al siguiente nivel se limpian los objetos del nivel anterior" {
-    mapa2.desbloquear()
+    selectorDeNiveles.desbloquear(mapa2)
     partida.jugar(mapa1)
     const objetosAnteriores = []
     partida.elementos().forEach({ elemento => objetosAnteriores.add(elemento) })
@@ -131,7 +134,7 @@ describe "Navegación entre pantallas" {
   }
 
   test "cada nivel usa la cantidad de cruces de su mapa" {
-    mapa2.desbloquear()
+    selectorDeNiveles.desbloquear(mapa2)
     navegador.actual().presionarJugar()
     navegador.actual().presionarNivel(1)
     assert.equals(2, partida.cruces().size())
@@ -139,20 +142,22 @@ describe "Navegación entre pantallas" {
     navegador.actual().presionarNivel(2)
     assert.equals(6, partida.cruces().size())
     navegador.actual().presionarVolver()
-    mapa3.desbloquear()
+    selectorDeNiveles.desbloquear(mapa3)
     navegador.actual().presionarNivel(3)
     assert.equals(6, partida.cruces().size())
   }
 
   test "los cinco niveles estan en el selector y solo el primero arranca abierto" {
     assert.equals(5, selectorDeNiveles.niveles().size())
-    assert.that(mapa1.desbloqueado())
-    assert.notThat(mapa4.desbloqueado())
-    assert.notThat(mapa5.desbloqueado())
+    assert.that(selectorDeNiveles.nivelesDesbloqueados().contains(mapa1))
+    assert.equals(nivelDesbloqueado, mapa1.estado())
+    assert.notThat(selectorDeNiveles.nivelesDesbloqueados().contains(mapa4))
+    assert.notThat(selectorDeNiveles.nivelesDesbloqueados().contains(mapa5))
   }
 
   test "al completar el nivel 4 se desbloquea el 5" {
     selectorDeNiveles.desbloquearSiguienteA(mapa4)
-    assert.that(mapa5.desbloqueado())
+    assert.that(selectorDeNiveles.nivelesDesbloqueados().contains(mapa5))
+    assert.equals(nivelDesbloqueado, mapa5.estado())
   }
 }

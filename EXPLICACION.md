@@ -59,7 +59,11 @@ Al comenzar, `navegador.actual` vale `menuPrincipal`. El menú muestra:
 
 La tecla `J` llama a `menuPrincipal.presionarJugar()`. Ese método le pide al `navegador` que cambie a `selectorDeNiveles`.
 
-La configuración todavía no tiene una acción asociada. La tecla `Q` detiene el juego directamente con `game.stop()`.
+La tecla `C` abre `configuracion`, que permite ajustar los volúmenes con `J`/`C` (general)
+y `R`/`N` (ambiente). Las teclas `1` y `2` silencian todo el audio o solo el ambiente,
+respectivamente. El objeto `sonidos` aplica el volumen general a los efectos y combina
+ese valor con el volumen ambiental para el sonido del parque. La tecla `Q` detiene el juego
+directamente con `game.stop()`.
 
 ### 3.2 Selección de nivel
 
@@ -69,9 +73,9 @@ Cuando se presiona un número:
 
 1. `entradaTeclado` informa el número a la pantalla actual.
 2. `selectorDeNiveles.presionarNivel(numero)` busca el nivel correspondiente en la lista `niveles`.
-3. Si ese nivel está desbloqueado, `partida.jugar(...)` lo guarda como nivel actual y navega hacia la partida. Si está bloqueado no pasa nada: la pantalla se queda donde está.
+3. Si ese nivel está en `nivelesDesbloqueados`, `partida.jugar(...)` lo guarda como nivel actual y navega hacia la partida. Si no está, la pantalla se queda donde está.
 
-El cartel de cada nivel no lo decide el selector: se lo pregunta al nivel con `imagenDelBoton()`, y el nivel contesta con su cartel de madera si está desbloqueado o con el gris con candado si no.
+El selector inicia `nivelesDesbloqueados` con `mapa1` y agrega el siguiente nivel cuando se completa el actual. Cada nivel compone un objeto de estado (`nivelBloqueado` o `nivelDesbloqueado`), que decide la imagen del botón; no guarda un booleano de desbloqueo.
 
 La tecla `V` vuelve al menú principal desde la selección de niveles.
 
@@ -194,7 +198,7 @@ Define todo lo que vive en el tablero, empezando por la superclase de la que her
 - `Espinas`: al pisarlas el jardinero muere y se pierde el nivel.
 - `Escalera`: frena el deslizamiento y deja al jardinero parado en ella.
 - `Agujero`: el túnel del topo. Guarda a su pareja en una lista de cero o un elemento, así no hace falta preguntar si la tiene: si el nivel dejó un agujero suelto, el `forEach` no hace nada.
-- `Vidrio`: la primera pasada lo deja rajado y cambia su imagen; la segunda mata al jardinero.
+- `Vidrio`: compone los estados `vidrioEntero` y `vidrioRajado`. El estado actual decide la imagen y qué ocurre al pisarlo: la primera pasada lo raja y reproduce el efecto de hielo quebrándose; la segunda mata al jardinero.
 
 `Espinas` y `Vidrio` son los dos bloques que pueden matar, y cada uno contesta `imagenDeDerrota()` con su propio cartel.
 
@@ -230,14 +234,14 @@ También define `sinSemilla`, que representa la mano vacía del jardinero y no p
 
 ### `niveles/nivel.wlk`
 
-Define la clase `Nivel`. Cada instancia (`mapa1` a `mapa5`) sabe su número, su dibujo, si está desbloqueada y cuántos segundos se consideran una vuelta perfecta (`tiempoIdeal`).
+Define la clase `Nivel`. Cada instancia (`mapa1` a `mapa5`) sabe su número, su dibujo, su objeto de estado (bloqueado o desbloqueado) y cuántos segundos se consideran una vuelta perfecta (`tiempoIdeal`).
 
 Dos métodos propios:
 
 - `imagenDelBoton()`: devuelve el cartel normal si está desbloqueado, o el cartel gris con candado de ese mismo número si no.
 - `notaPara(segundos)`: devuelve S, A, B, C o D comparando con su `tiempoIdeal`. Cada nivel decide su propia exigencia.
 
-Solo `mapa1` arranca desbloqueado; el resto se abre al completar el anterior.
+`selectorDeNiveles.nivelesDesbloqueados` arranca con `mapa1`; el resto se agrega al completar el anterior. El objeto de estado del nivel también cambia para elegir la imagen correspondiente.
 
 ### `niveles/mapa1.wlk` a `niveles/mapa5.wlk`
 
@@ -345,9 +349,9 @@ El botón de jugar cambia a la pantalla de niveles. Las acciones de configuraci�
 
 Define la pantalla de selección de niveles.
 
-La lista `niveles` mantiene la relación entre el número elegido y el nivel que debe cargarse: la tecla `1` elige el primero de la lista. `presionarNivel(numero)` obtiene ese nivel y, **solo si está desbloqueado**, se lo pasa a `partida`.
+La lista `niveles` mantiene la relación entre el número elegido y el nivel que debe cargarse: la tecla `1` elige el primero de la lista. `nivelesDesbloqueados` indica cuáles se pueden jugar. `presionarNivel(numero)` obtiene el nivel y solo se lo pasa a `partida` si está en esa lista.
 
-`desbloquearSiguienteA(nivel)` es lo que corre al ganar: busca con `filter` el nivel cuyo número es uno más que el recién completado y lo desbloquea. Si no existe —por ejemplo al ganar el último— la lista queda vacía y no pasa nada, sin tener que preguntar si existe.
+`desbloquearSiguienteA(nivel)` es lo que corre al ganar: busca con `filter` el nivel cuyo número es uno más que el recién completado y lo agrega a `nivelesDesbloqueados`, cambiando también su objeto de estado. Si no existe —por ejemplo al ganar el último— no hace nada.
 
 ### `pantallas/navegador.wlk`
 
@@ -407,7 +411,7 @@ Prueba el movimiento y las reglas del jardinero usando mapas chicos creados dent
 - **Las espinas**: que pisarlas hace perder, que aparece el cartel de derrota, que después las flechas no mueven al jardinero y que reiniciar vuelve a empezar.
 - **La escalera**: que frena al jardinero, que sube de a un escalón por vez y que moverse en horizontal lo baja y lo devuelve al deslizamiento.
 - **Los agujeros de topo**: que sale por el otro agujero y sigue de largo, y que no lo manda de vuelta al de entrada.
-- **El piso de vidrio**: que la primera pasada solo lo raja, que la segunda hace perder y que su cartel de derrota no es el de las espinas.
+- **El piso de vidrio**: que la primera pasada lo raja y reproduce su efecto de sonido, que la segunda hace perder y que su cartel de derrota no es el de las espinas.
 - **Los niveles nuevos**: que los niveles 4 y 5 se pueden ganar, jugándolos enteros con la secuencia de flechas de la solución.
 
 El método `deslizar(direccion)` simula manualmente varios pasos porque los eventos `onTick` no avanzan automáticamente durante los tests, y frena cuando el jardinero frena.

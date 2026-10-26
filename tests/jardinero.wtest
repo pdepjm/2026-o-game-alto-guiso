@@ -10,13 +10,13 @@ import niveles.mapa3.*
 import niveles.mapa4.*
 import niveles.mapa5.*
 import juego.escalaTablero.*
+import juego.bloques.*
 import utils.manager.*
 
 // Los mapas de prueba son niveles de verdad, para que se comporten igual que los del juego
 const mapaDePrueba = new Nivel(
   numero = 90,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#J r R#",
@@ -29,7 +29,6 @@ const mapaDePrueba = new Nivel(
 const mapaConEsquinaBloqueada = new Nivel(
   numero = 92,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#     #",
@@ -150,7 +149,6 @@ describe "El jardinero en el jardín" {
 const mapaConObstaculos = new Nivel(
   numero = 91,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#J  P #",
@@ -198,7 +196,6 @@ describe "Los obstáculos del jardín" {
 const mapaConEsquinaDerecha = new Nivel(
   numero = 92,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#    r#",
@@ -211,7 +208,6 @@ const mapaConEsquinaDerecha = new Nivel(
 const mapaConEsquinaIzquierda = new Nivel(
   numero = 93,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#     #",
@@ -427,7 +423,6 @@ describe "Las cifras del cronometro" {
 const mapaConEspinas = new Nivel(
   numero = 94,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#J  X #",
@@ -479,7 +474,6 @@ describe "Las espinas" {
 const mapaConEscalera = new Nivel(
   numero = 95,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#  E  #",
@@ -530,7 +524,6 @@ describe "La escalera" {
 const mapaConAgujeros = new Nivel(
   numero = 96,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#J H  #",
@@ -568,7 +561,6 @@ describe "Los agujeros de topo" {
 const mapaConVidrio = new Nivel(
   numero = 97,
   tiempoIdeal = 10,
-  desbloqueado = true,
   mapa = [
     "#######",
     "#J V  #",
@@ -595,8 +587,9 @@ describe "El piso de vidrio" {
   method vidrio() = partida.elementosEn(escalaTablero.posicionCelda(3, 3)).first()
 
   test "la primera pasada solo raja el vidrio" {
+    assert.equals(vidrioEntero, self.vidrio().estado())
     self.deslizar(derecha)
-    assert.that(self.vidrio().rajado())
+    assert.equals(vidrioRajado, self.vidrio().estado())
     assert.notThat(partida.perdido())
     assert.equals(assetsManager.vidrioRoto(), self.vidrio().image())
   }

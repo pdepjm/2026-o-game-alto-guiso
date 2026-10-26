@@ -21,11 +21,15 @@ la cruz se convierte en la flor de ese color. Se gana cuando todas las cruces ti
   desbloquea el siguiente.
 - Al completar un nivel, se puede continuar con `N` si hay un nivel siguiente.
 - La opción `C` del menú abre la pantalla de configuración; `V` vuelve al menú.
+- Desde configuración se ajusta el volumen general con `J`/`C` y el ambiental con `R`/`N`;
+  `1` silencia o activa todo el audio y `2` silencia o activa solo el sonido de parque.
+- El volumen general controla los efectos y el ambiente; el nivel ambiental se regula aparte.
 - Un cronómetro cuenta lo que tarda cada nivel y al terminar da una nota de S a D, según el
   tiempo ideal que define cada nivel.
 - Abajo de todo siempre se ven las teclas que se pueden apretar en esa pantalla.
 - También se puede perder: las espinas y el vidrio ya rajado matan al jardinero. Aparece un cartel
   y con `R` se reintenta el nivel.
+- La primera vez que el jardinero pisa el vidrio, este se raja y suena un efecto de hielo quebrándose.
 
 #### Controles
 
@@ -33,6 +37,9 @@ la cruz se convierte en la flor de ese color. Se gana cuando todas las cruces ti
 |---|---|
 | J | Jugar (desde el menú) |
 | C | Abrir configuración (desde el menú) |
+| J / C | Bajar / subir el volumen general (en configuración) |
+| R / N | Bajar / subir el volumen ambiental (en configuración) |
+| 1 / 2 | Silenciar todo / solo el ambiente (en configuración) |
 | 1 a 5 | Elegir nivel |
 | N | Siguiente nivel (al completar un nivel) |
 | Flechas | Mover al jardinero |
@@ -53,8 +60,9 @@ wollok test
 #### Agregar o cambiar un nivel
 
 Cada nivel es una instancia de la clase `Nivel` (`niveles/nivel.wlk`) que vive en `niveles/`. Sabe su
-número, cuántos segundos se consideran una vuelta perfecta, si está desbloqueado y su `mapa`, que es un
-dibujo hecho con texto:
+número, cuántos segundos se consideran una vuelta perfecta, su estado (bloqueado o desbloqueado) y su
+`mapa`, que es un dibujo hecho con texto. El selector mantiene la lista de niveles desbloqueados, que
+empieza con el nivel 1:
 
 | Letra | Qué es |
 |---|---|

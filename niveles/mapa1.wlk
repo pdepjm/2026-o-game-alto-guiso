@@ -5,7 +5,7 @@ import niveles.nivel.*
 const mapa1 = new Nivel(
     numero = 1,
     tiempoIdeal = 15,
-    desbloqueado = true,
+    estado = nivelDesbloqueado,
     mapa = [
         "###########",
         "#J   r   R#",
