@@ -7,7 +7,7 @@ const mapa3 = new Nivel(
     tiempoIdeal = 90,
     mapa = [
         "###############",
-        "#J R  a   a  T#",
+        "#J R  a   a  D#",
         "#             #",
         "#r            #",
         "#             #",

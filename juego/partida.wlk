@@ -12,10 +12,65 @@ import juego.direcciones.*
 import juego.escalaTablero.*
 import utils.manager.*
 
+
+// En qué está la partida. Antes esto eran dos booleanos, `ganado` y `perdido`, para tres
+// situaciones que no pueden darse a la vez, y había que combinarlos con ifs en cada lugar
+// donde importaban. Ahora hay un objeto por situación y la partida le delega lo que cambia:
+// qué teclas se muestran, si las flechas mueven al jardinero y si todavía se puede ganar
+// o perder.
+
+object jugando {
+    method ganado() = false
+    method perdido() = false
+    method enJuego() = true
+
+    method imagenDeTeclas(partida) = assetsManager.teclasDeLaPartida()
+
+    method presionarDireccion(partida, direccion) { jardinero.mover(direccion) }
+
+    method verificarSiTermino(partida) {
+        if (partida.todoPlantado()) partida.terminarGanando()
+    }
+
+    method perder(partida, culpable) { partida.terminarPerdiendo(culpable) }
+
+    method presionarSiguiente(partida) {}
+}
+
+object ganada {
+    method ganado() = true
+    method perdido() = false
+    method enJuego() = false
+
+    method imagenDeTeclas(partida) =
+        if (partida.hayNivelSiguiente()) assetsManager.teclasDeVictoria()
+        else assetsManager.teclasDeVictoriaFinal()
+
+    // Ya terminó: ni las flechas mueven, ni se puede volver a ganar o perder
+    method presionarDireccion(partida, direccion) {}
+    method verificarSiTermino(partida) {}
+    method perder(partida, culpable) {}
+
+    method presionarSiguiente(partida) { partida.irAlNivelSiguiente() }
+}
+
+object perdida {
+    method ganado() = false
+    method perdido() = true
+    method enJuego() = false
+
+    // Las mismas teclas que jugando, porque lo que sirve es R para reintentar y V para volver
+    method imagenDeTeclas(partida) = assetsManager.teclasDeLaPartida()
+
+    method presionarDireccion(partida, direccion) {}
+    method verificarSiTermino(partida) {}
+    method perder(partida, culpable) {}
+    method presionarSiguiente(partida) {}
+}
 object partida {
     var nivel = mapa1
-    var ganado = false
-    var perdido = false
+    // En qué está: jugando, ganada o perdida. A él le delega lo que cambia según eso.
+    var estado = jugando
 
     // Todo lo que está puesto en el tablero: vallas, semillas, cruces, piedras y charcos.
     // Es una sola lista para que el jardinero le pueda preguntar a cualquiera y para que
@@ -39,8 +94,9 @@ object partida {
 
     method nivel() = nivel
     method nivel(unNivel) { nivel = unNivel }
-    method ganado() = ganado
-    method perdido() = perdido
+    method ganado() = estado.ganado()
+    method perdido() = estado.perdido()
+    method enJuego() = estado.enJuego()
     method cruces() = cruces
     method elementos() = elementosDelNivel
 
@@ -50,10 +106,7 @@ object partida {
         navegador.irA(self)
     }
 
-    method imagenDeTeclas() =
-        if (!ganado) assetsManager.teclasDeLaPartida()
-        else if (self.hayNivelSiguiente()) assetsManager.teclasDeVictoria()
-        else assetsManager.teclasDeVictoriaFinal()
+    method imagenDeTeclas() = estado.imagenDeTeclas(self)
 
     method hayNivelSiguiente() =
         selectorDeNiveles.niveles().any({ otro => otro.numero() == nivel.numero() + 1 })
@@ -65,8 +118,7 @@ object partida {
         elementosPorPosicion = new Dictionary()
         cruces.clear()
         agujerosSinPareja.clear()
-        ganado = false
-        perdido = false
+        estado = jugando
         
         const filas = nivel.mapa()
         const alto = filas.size()
@@ -92,10 +144,12 @@ object partida {
         if (letra == "E") self.agregar(new Escalera(position = posicion))
         if (letra == "V") self.agregar(new Vidrio(position = posicion))
         if (letra == "H") self.ponerAgujero(posicion)
-        if (letra == "D") self.agregar(new Esquina(position = posicion, giro = giroDerecha))
-        if (letra == "I") self.agregar(new Esquina(position = posicion, giro = giroIzquierda))
-        if (letra == "T") self.agregar(new Esquina(position = posicion, giro = giroIzquierdaSuperiorDerecha))
-        if (letra == "O") self.agregar(new Esquina(position = posicion, giro = giroIzquierdaInferiorDerecha))
+        // Las cuatro esquinas son las cuatro mitades de celda. Las que comparten diagonal
+        // desvían igual: lo que cambia entre ellas es la madera que se dibuja.
+        if (letra == "I") self.agregar(new Esquina(position = posicion, diagonal = diagonalCreciente, image = assetsManager.rampaArribaIzquierda()))
+        if (letra == "O") self.agregar(new Esquina(position = posicion, diagonal = diagonalCreciente, image = assetsManager.rampaAbajoDerecha()))
+        if (letra == "D") self.agregar(new Esquina(position = posicion, diagonal = diagonalDecreciente, image = assetsManager.rampaArribaDerecha()))
+        if (letra == "T") self.agregar(new Esquina(position = posicion, diagonal = diagonalDecreciente, image = assetsManager.rampaAbajoIzquierda()))
         if (letra == "J") jardinero.empezarEn(posicion)
 
         semillas.filter({ semilla => semilla.letra() == letra }).forEach({ semilla => self.ponerSemilla(semilla, posicion) })
@@ -141,12 +195,11 @@ object partida {
 
     method todoPlantado() = cruces.all({ cruz => cruz.florecida() })
 
-    method verificarSiTermino() {
-        if (!ganado && self.todoPlantado()) self.ganar()
-    }
+    // Lo pregunta el jardinero en cada celda. Si ya terminó, el estado no hace nada.
+    method verificarSiTermino() { estado.verificarSiTermino(self) }
 
-    method ganar() {
-        ganado = true
+    method terminarGanando() {
+        estado = ganada
         jardinero.frenar()
         cronometro.parar()
         selectorDeNiveles.desbloquearSiguienteA(nivel)
@@ -157,10 +210,14 @@ object partida {
         cartelDeVictoria.mostrar(self.nota())
     }
 
-    // Lo llama el jardinero cuando lo mata algun bloque. El culpable decide que cartel
-    // se muestra: no es lo mismo clavarse con las espinas que caerse por el vidrio.
-    method perder(culpable) {
-        perdido = true
+    // Lo llama el jardinero cuando lo mata algun bloque. Si el nivel ya habia terminado,
+    // el estado lo ignora.
+    method perder(culpable) { estado.perder(self, culpable) }
+
+    // El culpable decide que cartel se muestra: no es lo mismo clavarse con las espinas
+    // que caerse por el vidrio.
+    method terminarPerdiendo(culpable) {
+        estado = perdida
         jardinero.frenar()
         cronometro.parar()
         cartelDeDerrota.mostrar(culpable.imagenDeDerrota())
@@ -190,9 +247,7 @@ object partida {
         cartelDeDerrota.ocultar()
     }
 
-    method presionarDireccion(direccion) {
-        if (!ganado && !perdido) jardinero.mover(direccion)
-    }
+    method presionarDireccion(direccion) { estado.presionarDireccion(self, direccion) }
 
     method presionarReiniciar() {
         self.ocultar()
@@ -202,11 +257,11 @@ object partida {
     method presionarVolver() { navegador.irA(selectorDeNiveles) }
     method presionarJugar() {}
     method presionarNivel(numero) {}
-    method presionarSiguiente() {
-        if (ganado) {
-            selectorDeNiveles.niveles()
-                .filter({ otro => otro.numero() == nivel.numero() + 1 })
-                .forEach({ siguiente => self.jugar(siguiente) })
-        }
+    method presionarSiguiente() { estado.presionarSiguiente(self) }
+
+    method irAlNivelSiguiente() {
+        selectorDeNiveles.niveles()
+            .filter({ otro => otro.numero() == nivel.numero() + 1 })
+            .forEach({ siguiente => self.jugar(siguiente) })
     }
 }

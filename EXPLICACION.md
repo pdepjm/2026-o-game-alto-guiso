@@ -12,7 +12,7 @@ El jugador tiene que:
 4. Llevar cada semilla hasta una cruz del mismo color.
 5. Repetir el proceso hasta florecer todas las cruces.
 
-El jardinero se mueve deslizándose. Cuando se presiona una flecha, se anima de forma continua entre celdas hasta encontrar una cerca o una piedra. Al pisar una rampa, gira en el sentido configurado; si ese giro apunta contra un muro, rebota en sentido contrario y sigue deslizándose. Mientras está deslizándose, las nuevas teclas de movimiento se ignoran. Esto hace que cada movimiento sea un recorrido completo de extremo a extremo, en lugar de un movimiento de una sola celda.
+El jardinero se mueve deslizándose. Cuando se presiona una flecha, se anima de forma continua entre celdas hasta encontrar una cerca o una piedra. Al pisar una esquina, rebota contra su diagonal como contra un espejo: hacia dónde sale depende de por dónde entró, así que la misma esquina lo manda para dos lados distintos. Si el paso de salida está bloqueado, se detiene ahí. Mientras está deslizándose, las nuevas teclas de movimiento se ignoran. Esto hace que cada movimiento sea un recorrido completo de extremo a extremo, en lugar de un movimiento de una sola celda.
 
 Una semilla no desaparece al ser recogida: el jardinero la guarda en la mano, pero el objeto sigue en el tablero. Si se recoge otra semilla, reemplaza a la anterior. Una cruz solo florece cuando recibe una semilla del mismo color. Las cruces de otro color, o una cruz visitada sin semilla, no cambian.
 
@@ -101,10 +101,10 @@ El mapa es una lista de strings. Cada carácter representa algo:
 | `E` | Escalera, frena el deslizamiento |
 | `H` | Agujero de topo, teletransporta al otro agujero |
 | `V` | Piso de vidrio, aguanta una sola pasada |
-| `D` | Rampa transitable que gira al jardinero a la derecha |
-| `I` | Rampa transitable que gira al jardinero a la izquierda |
-| `T` | Rampa superior derecha que gira a la izquierda |
-| `O` | Rampa inferior derecha que gira a la izquierda |
+| `I` | Esquina que ocupa la mitad de arriba a la izquierda |
+| `D` | Esquina que ocupa la mitad de arriba a la derecha |
+| `T` | Esquina que ocupa la mitad de abajo a la izquierda |
+| `O` | Esquina que ocupa la mitad de abajo a la derecha |
 | Espacio | Celda libre |
 
 `partida.armar()` calcula el tamaño del mapa, lo centra dentro del tablero y recorre cada fila y columna. Para cada carácter llama a `ubicar(letra, posicion)`, que decide qué objeto debe configurarse en esa celda.
@@ -121,11 +121,13 @@ Después del armado, `partida.mostrar()` agrega a la pantalla todos los elemento
 
 Cuando se presiona una flecha, `entradaTeclado` envía una dirección a la pantalla actual. La pantalla de partida llama a `jardinero.mover(direccion)`, siempre que el nivel no esté ya ganado ni perdido.
 
-Si el jardinero no está deslizándose:
+El jardinero no decide él mismo qué hacer con esa flecha: se lo pregunta a su **estado de movimiento**, que es un objeto. Hay uno por cada forma de moverse y los tres entienden el mismo mensaje `mover(jardinero, direccion)`:
 
-1. Guarda la nueva dirección.
-2. Marca `deslizando = true`.
-3. Registra un evento periódico con `game.onTick`.
+- `enElPiso`: cualquier flecha arranca un recorrido completo.
+- `enLaEscalera`: las verticales suben o bajan un escalón, las horizontales arrancan un recorrido.
+- `deslizandose`: no hace nada, porque las flechas se ignoran hasta que frene.
+
+Cambiar de estado es reapuntar esa referencia a otro objeto. Antes esto eran dos booleanos (`deslizando` y `enEscalera`) que el jardinero tenía que combinar con ifs.
 
 El juego representa cada celda lógica con cuatro subceldas de renderizado. Cada ejecución de
 `jardinero.animarPaso()` avanza una subcelda entera; al completar cuatro, procesa semillas, rampas,
@@ -136,9 +138,9 @@ Antes de comenzar a moverse hacia una nueva celda, consulta a `partida.puedeEntr
 está bloqueada, llama a `jardinero.frenar()`. Si pisa una rampa, aplica el giro; cuando el giro apunta
 contra un muro, invierte el rumbo para rebotar y seguir avanzando.
 
-Frenar cambia `deslizando` a `false` y elimina el evento periódico. Así el jardinero puede recibir una nueva dirección.
+Frenar lo devuelve al estado `enElPiso` y elimina el evento periódico. Así el jardinero puede recibir una nueva dirección.
 
-**La escalera es la excepción al deslizamiento.** Al pisarla, el jardinero se frena y queda parado en ella. Mientras siga ahí, las flechas verticales lo mueven de a una sola celda en vez de deslizarlo; si se mueve en horizontal, se baja de la escalera y vuelve a deslizarse hasta chocar, como siempre. Para que la escalera no tenga que preguntar qué flecha se apretó, cada dirección sabe si es vertical: `arriba` y `abajo` contestan que sí, `izquierda` y `derecha` que no.
+**La escalera es la excepción al deslizamiento.** Al pisarla, el jardinero se frena y queda parado en ella. Mientras siga ahí, las flechas verticales lo mueven de a una sola celda en vez de deslizarlo; si se mueve en horizontal, se baja de la escalera y vuelve a deslizarse hasta chocar, como siempre. Y cuando da un escalón de más y del otro lado ya no hay escalera, tampoco se queda frenado en el aire: se baja y sigue de largo hasta chocar. Para que la escalera no tenga que preguntar qué flecha se apretó, cada dirección sabe si es vertical: `arriba` y `abajo` contestan que sí, `izquierda` y `derecha` que no.
 
 ### 3.5 Interacción con semillas y cruces
 
@@ -147,7 +149,7 @@ Los elementos del tablero no necesitan que el jardinero conozca su tipo concreto
 - Una semilla llama a `jardinero.recoger(self)`.
 - Una cruz llama a `jardinero.plantarEn(self)`.
 - Un charco de barro llama a `jardinero.recoger(sinSemilla)`, o sea le deja las manos vacías.
-- Una rampa llama a `jardinero.girar(giro)`.
+- Una esquina llama a `jardinero.desviarPor(diagonal)`, pasándole su diagonal.
 - Una escalera llama a `jardinero.subirseAEscalera()`.
 - Un agujero llama a `jardinero.caerEn(...)` con la posición de su pareja.
 - Las espinas y el vidrio ya rajado llaman a `jardinero.morir(self)`.
@@ -162,16 +164,18 @@ Este diseño permite que el jardinero no tenga un solo `if` sobre con qué se cr
 
 Después de cada paso, `partida.verificarSiTermino()` comprueba si todas las cruces cumplen `florecida()`.
 
-Si todas están florecidas y el nivel todavía no estaba ganado:
+La partida no resuelve eso con un if: le pregunta a su **estado** (`jugando`, `ganada` o `perdida`). Solo `jugando` se fija si ya está todo plantado; los otros dos ignoran el aviso, así que un nivel terminado no puede volver a ganarse ni perderse.
 
-1. Se marca `ganado = true`.
+Si todas están florecidas:
+
+1. El estado pasa a ser `ganada`.
 2. Se frena al jardinero y se para el cronómetro.
 3. Se le pide al selector que desbloquee el nivel siguiente.
 4. Se muestra el cartel de victoria, con el tiempo en cifras y la medalla de la nota.
 
-Si en cambio el jardinero pisa las espinas o un vidrio ya rajado, ese bloque le manda `morir(self)` y la partida marca `perdido = true`, para el cronómetro y muestra el cartel de derrota. **Cuál cartel se muestra lo decide el bloque que lo mató**, que contesta `imagenDeDerrota()`: no es lo mismo clavarse con las espinas que caerse por el vidrio.
+Si en cambio el jardinero pisa las espinas o un vidrio ya rajado, ese bloque le manda `morir(self)` y la partida pasa al estado `perdida`, para el cronómetro y muestra el cartel de derrota. **Cuál cartel se muestra lo decide el bloque que lo mató**, que contesta `imagenDeDerrota()`: no es lo mismo clavarse con las espinas que caerse por el vidrio.
 
-Una vez terminado el nivel, ganado o perdido, `partida.presionarDireccion(...)` ya no permite iniciar nuevos movimientos.
+Una vez terminado el nivel, ganado o perdido, las flechas no hacen nada: `presionarDireccion` también se lo delega al estado, y ni `ganada` ni `perdida` mueven al jardinero.
 
 La tecla `R` llama a `partida.presionarReiniciar()`. El nivel se oculta y se muestra de nuevo, por lo que se vacían y vuelven a construir sus elementos desde el mapa original.
 
@@ -194,7 +198,7 @@ Define todo lo que vive en el tablero, empezando por la superclase de la que her
 - `Valla`: la cerca que rodea el jardín y arma el laberinto. Redefine `esTraspasable()` porque bloquea el paso. Es un bloque cuadrado que llena la celda, así que varias seguidas forman un muro continuo en cualquier dirección.
 - `Piedra`: bloquea el paso igual que una valla, pero en el medio del jardín.
 - `CharcoDeBarro`: se puede pisar, pero al hacerlo el jardinero pierde la semilla que llevaba en la mano.
-- `Esquina`: se puede pisar y cambia la dirección del jardinero. Se dibuja como una rampa, que es el mismo bloque de valla cortado en diagonal, en sus cuatro orientaciones.
+- `Esquina`: se puede pisar y desvía al jardinero. Tiene dos cosas por separado: la diagonal, que resuelve hacia dónde sale según por dónde entró, y la madera que se dibuja, que es el bloque de valla cortado en una de sus cuatro mitades. Dos maderas distintas pueden compartir la misma diagonal, por eso están separadas.
 - `Espinas`: al pisarlas el jardinero muere y se pierde el nivel.
 - `Escalera`: frena el deslizamiento y deja al jardinero parado en ella.
 - `Agujero`: el túnel del topo. Guarda a su pareja en una lista de cero o un elemento, así no hace falta preguntar si la tiene: si el nivel dejó un agujero suelto, el `forEach` no hace nada.
@@ -212,9 +216,9 @@ Define la clase `Cruz`, que también hereda de `Bloque`. Cada instancia tiene:
 
 - Una posición, heredada de `Bloque`.
 - La semilla que le corresponde.
-- Un estado que indica si ya floreció.
-- Una imagen que cambia según ese estado.
-- El comportamiento para reaccionar cuando el jardinero la pisa.
+- Su estado: `sinFlorecer` o `florecida`.
+
+El estado es el mismo recurso que usa el vidrio, y por el mismo motivo: lo único que cambia al florecer es cómo se dibuja y qué pasa cuando le plantan algo. En vez de un booleano con ifs, la cruz le delega las dos cosas al objeto de estado, y florecer es reapuntar esa referencia.
 
 `partida` crea una cruz por cada `r`, `a` o `m` del mapa con `new Cruz(...)`. Antes había seis objetos repetidos (`cruz1` a `cruz6`) y un límite de seis cruces por nivel: con la clase, ese límite desapareció.
 
@@ -234,14 +238,11 @@ También define `sinSemilla`, que representa la mano vacía del jardinero y no p
 
 ### `niveles/nivel.wlk`
 
-Define la clase `Nivel`. Cada instancia (`mapa1` a `mapa5`) sabe su número, su dibujo, su objeto de estado (bloqueado o desbloqueado) y cuántos segundos se consideran una vuelta perfecta (`tiempoIdeal`).
+Define la clase `Nivel`. Cada instancia (`mapa1` a `mapa5`) sabe su número, su dibujo y cuántos segundos se consideran una vuelta perfecta (`tiempoIdeal`).
 
-Dos métodos propios:
+Tiene un solo método propio, `notaPara(segundos)`, que devuelve S, A, B, C o D comparándolos con su `tiempoIdeal`: cada nivel decide su propia exigencia.
 
-- `imagenDelBoton()`: devuelve el cartel normal si está desbloqueado, o el cartel gris con candado de ese mismo número si no.
-- `notaPara(segundos)`: devuelve S, A, B, C o D comparando con su `tiempoIdeal`. Cada nivel decide su propia exigencia.
-
-`selectorDeNiveles.nivelesDesbloqueados` arranca con `mapa1`; el resto se agrega al completar el anterior. El objeto de estado del nivel también cambia para elegir la imagen correspondiente.
+Un nivel **no sabe si está desbloqueado**, y es a propósito: eso no es una característica suya sino del avance del jugador. La lista `selectorDeNiveles.nivelesDesbloqueados` arranca con `mapa1` y le va sumando los que se completan, y es el único lugar donde vive ese dato.
 
 ### `niveles/mapa1.wlk` a `niveles/mapa5.wlk`
 
@@ -251,7 +252,7 @@ Un mapa no tiene ninguna lógica: es solo el dibujo. Todo lo que hay que hacer c
 
 - `mapa1`: el tutorial. Una semilla y una cruz de dos colores, rojo y azul.
 - `mapa2`: tres colores, dos cruces de cada uno.
-- `mapa3`: seis cruces y un recorrido circular, donde las rampas `T` y `O` desvían al jardinero.
+- `mapa3`: seis cruces y un recorrido circular, donde las esquinas `D` y `O` desvían al jardinero y lo hacen dar la vuelta completa.
 - `mapa4`: estrena el barro, las espinas y las escaleras. La cruz azul está encerrada arriba y la única forma de llegar es frenar en la escalera y subir escalón por escalón.
 - `mapa5`: están todos los bloques juntos. Las dos cruces del medio viven en una pieza cerrada a la que se entra y se sale por los agujeros de topo, y la cruz amarilla pide cruzar el piso de vidrio.
 
@@ -270,6 +271,12 @@ Sus responsabilidades son:
 - Comprobar la victoria y la derrota, y desbloquear el nivel siguiente al ganar.
 - Gestionar reinicio y vuelta a la pantalla anterior.
 
+El mismo archivo define los tres estados en los que puede estar una partida: `jugando`, `ganada`
+y `perdida`. La partida les delega todo lo que depende de en cuál está: qué barra de teclas se
+muestra, si las flechas mueven al jardinero, si todavía se puede ganar o perder y qué hace la tecla
+`N`. Antes esto eran dos booleanos, `ganado` y `perdido`, para tres situaciones que no pueden darse
+a la vez.
+
 ### `juego/jardinero.wlk`
 
 Define el objeto `jardinero`.
@@ -279,19 +286,20 @@ Guarda:
 - Su posición.
 - Su dirección actual.
 - La semilla que tiene en la mano.
-- Si está deslizándose.
-- Si está parado en una escalera.
+- Su estado de movimiento: el objeto al que le delega qué hacer con cada flecha.
 
 Sus métodos principales son:
 
 - `empezarEn(posicionInicial)`: reinicia su estado en una posición del mapa.
-- `mover(direccion)`: sube un escalón si está en una escalera y la flecha es vertical; si no, inicia un deslizamiento.
+- `mover(direccion)`: no resuelve nada, se lo delega a su estado de movimiento.
+- `empezarADeslizar(direccion)`: arranca un recorrido completo.
+- `subirUnEscalon(direccion)`: un escalón por vez mientras siga habiendo escalera; si del otro lado ya no hay, se baja y sigue deslizándose.
 - `animarPaso()`: mueve al jardinero una subcelda por tick para suavizar el recorrido.
 - `avanzarUnPaso()`: calcula y ejecuta un paso lógico completo.
 - `frenar()`: detiene el evento de movimiento.
 - `recoger(semilla)`: cambia la semilla que lleva.
 - `plantarEn(cruz)`: delega en la semilla la interacción con una cruz.
-- `girar(giro)`: aplica el giro de la rampa o rebota si el rumbo está bloqueado.
+- `desviarPor(diagonal)`: le pide a la diagonal de la esquina en qué se convierte su dirección.
 - `subirseAEscalera()`: lo frena y lo deja parado en la escalera.
 - `caerEn(posicion)`: lo manda al otro extremo del túnel sin cortar el movimiento y sin volver a pisar lo que haya en la celda de salida.
 - `morir(culpable)`: le avisa a la partida que se perdió, pasándole el bloque que lo mató.
@@ -301,6 +309,17 @@ La imagen del jardinero se obtiene de la dirección actual, por lo que cambia au
 ### `juego/manoDelJardinero.wlk`
 
 Un ícono chiquito que muestra qué semilla lleva el jardinero. Su posición es la del jardinero (así lo sigue solo) y su imagen se la pide a la semilla que tiene en la mano. Si no lleva nada, `sinSemilla` devuelve una imagen transparente, así no hace falta agregar ni sacar el ícono del juego.
+
+### `juego/movimientos.wlk`
+
+Los tres objetos que representan cómo se está moviendo el jardinero: `enElPiso`, `enLaEscalera` y
+`deslizandose`. Los tres entienden `mover(jardinero, direccion)`, `estaDeslizando()` y
+`estaEnEscalera()`, así que el jardinero los trata igual y le delega a su estado qué hacer con cada
+flecha.
+
+Antes esto eran dos booleanos dentro del jardinero (`deslizando` y `enEscalera`) que había que
+combinar con ifs en cada movimiento. Ahora cambiar de forma de moverse es reapuntar una referencia a
+otro objeto, y cada uno resuelve lo suyo sin preguntar nada.
 
 ### `juego/direcciones.wlk`
 
@@ -316,7 +335,7 @@ Cada dirección sabe:
 
 Esto evita llenar `jardinero` de condiciones distintas para cada flecha.
 
-El mismo archivo define los cuatro giros que usan las rampas. Cada uno sabe cómo transformar una dirección y qué imagen le corresponde.
+El mismo archivo define las dos diagonales posibles de una esquina, `diagonalCreciente` ("/") y `diagonalDecreciente` ("\"). Ninguna de las dos resuelve el rebote por su cuenta: se lo pregunta a la dirección, que es la que sabe en qué se convierte. Por eso no hay un solo `if` en todo el desvío.
 
 ### `juego/escalaTablero.wlk`
 
@@ -351,7 +370,9 @@ Define la pantalla de selección de niveles.
 
 La lista `niveles` mantiene la relación entre el número elegido y el nivel que debe cargarse: la tecla `1` elige el primero de la lista. `nivelesDesbloqueados` indica cuáles se pueden jugar. `presionarNivel(numero)` obtiene el nivel y solo se lo pasa a `partida` si está en esa lista.
 
-`desbloquearSiguienteA(nivel)` es lo que corre al ganar: busca con `filter` el nivel cuyo número es uno más que el recién completado y lo agrega a `nivelesDesbloqueados`, cambiando también su objeto de estado. Si no existe —por ejemplo al ganar el último— no hace nada.
+`desbloquearSiguienteA(nivel)` es lo que corre al ganar: busca con `filter` el nivel cuyo número es uno más que el recién completado y lo agrega a `nivelesDesbloqueados`. Si no existe —por ejemplo al ganar el último— el filter no encuentra nada y no pasa nada.
+
+Esa lista es el **único lugar** donde vive el avance del jugador. El cartel de cada nivel (`BotonDeNivel`) tampoco lo sabe por su cuenta: le pregunta al selector con `estaDesbloqueado(nivel)` y según eso elige entre el cartel de madera y el gris con candado.
 
 ### `pantallas/navegador.wlk`
 
@@ -388,6 +409,21 @@ Las teclas no modifican directamente al jardinero ni a las pantallas. En cambio,
 | `Q` | Detener el juego |
 
 La tecla `C` está registrada, pero todavía no tiene comportamiento.
+
+### `utils/sonidos.wlk`
+
+El sonido ambiente del parque y los efectos (el click de las teclas y el hielo que se parte), más el
+volumen de cada cosa.
+
+Tiene un detalle importante de rendimiento. Wollok Game **no suelta nunca un sonido reproducido**: al
+mandarle `play()` queda dentro de `game.sounds`, y lo único que lo saca de ahí es `stop()`. Y el motor
+serializa esa lista entera y se la manda al navegador en **cada frame**. Como cada tecla apretada
+reproduce un efecto, sin soltarlos el juego se iba llenando de sonidos muertos que se mandaban por el
+resto de la partida, y se ponía cada vez más lento.
+
+Por eso los efectos tienen un cupo: `reproducirEfecto` suelta con `stop()` el más viejo cuando ya hay
+cinco dando vueltas. Cinco alcanza de sobra porque los efectos duran menos de un segundo, así que para
+cuando se recicla el más viejo ya terminó de sonar.
 
 ### `utils/manager.wlk`
 
@@ -488,7 +524,7 @@ jardinero
 
 La idea más importante es que cada módulo tenga una responsabilidad concreta: los mapas describen datos, las semillas y cruces resuelven sus propias interacciones, `partida` administra el tablero, `jardinero` administra el movimiento, las pantallas administran la navegación y `entradaTeclado` conecta el teclado con esas acciones.
 
-## 7. Dónde está la herencia y dónde el polimorfismo
+## 7. Dónde está la herencia, dónde la composición y dónde el polimorfismo
 
 **Herencia.** Está en la jerarquía de `Bloque`. La superclase define el comportamiento por defecto de cualquier cosa que viva en el tablero —tiene una posición, se puede pisar, y al pisarla no pasa nada— y las diez subclases redefinen con `override` solamente aquello en lo que se apartan: `Valla` y `Piedra` el `esTraspasable()`, y el resto el `pisadoPor()`.
 
@@ -501,3 +537,25 @@ Hay otros tres lugares donde se apoya la misma idea:
 - **Las pantallas.** Menú, selector y partida entienden los mismos mensajes y cada una ignora los que no le sirven, así el teclado le habla siempre a `navegador.actual()` sin saber cuál es.
 - **La mano vacía.** `sinSemilla` entiende `aplicarEn(cruz)` y no hace nada, así nunca hay que preguntar si el jardinero lleva algo.
 - **El cartel de derrota.** Cada bloque que puede matar contesta `imagenDeDerrota()` con el suyo. Si mañana aparece otro bloque que mate, alcanza con que conteste ese mensaje: no hay que tocar ni la partida ni el jardinero.
+
+**Composición.** Donde una característica **cambia durante la vida del objeto**, no se usa herencia
+sino una referencia a otro objeto, que se reapunta cuando el estado cambia. Un objeto no puede cambiar
+de clase, pero sí puede cambiar a quién le delega. Hay seis casos:
+
+| Qué cambia | Quién lo tiene | Objetos posibles |
+|---|---|---|
+| Cómo se está moviendo el jardinero | `jardinero.estado` | `enElPiso`, `enLaEscalera`, `deslizandose` |
+| En qué está la partida | `partida.estado` | `jugando`, `ganada`, `perdida` |
+| Si el vidrio ya se pisó | `Vidrio.estado` | `vidrioEntero`, `vidrioRajado` |
+| Si la cruz ya floreció | `Cruz.estado` | `sinFlorecer`, `florecida` |
+| Hacia dónde desvía una esquina | `Esquina.diagonal` | `diagonalCreciente`, `diagonalDecreciente` |
+| Hasta dónde llegó el jugador | `selectorDeNiveles.nivelesDesbloqueados` | la lista de niveles abiertos |
+
+Los cuatro primeros son estados que cambian solos mientras se juega: el jardinero se sube a una escalera,
+la partida se gana, el vidrio se raja, la cruz florece. Los otros dos no cambian, pero igual son composición: la esquina **tiene** una
+diagonal en vez de ser una subclase por cada tipo de giro, y el avance del jugador vive en una lista en
+vez de ser un booleano repartido por cada nivel.
+
+El caso de la esquina muestra bien por qué conviene: hay cuatro maderas distintas pero solo dos formas
+de desviar, así que con herencia harían falta cuatro subclases y dos de ellas repetirían el código de
+las otras dos. Con composición, la madera es un dato y la diagonal es a quién le delega.

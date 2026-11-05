@@ -9,8 +9,9 @@
 #### El juego
 
 Un jardinero recorre el jardín para plantar flores. Una vez que arranca en una dirección no frena hasta
-chocar contra una cerca o una piedra. Las esquinas cambian el eje de movimiento según su orientación;
-si el paso de salida está bloqueado, el jardinero se detiene en la esquina. El movimiento entre celdas
+chocar contra una cerca o una piedra. Las esquinas funcionan como un espejo puesto en su diagonal: hacia
+dónde sale el jardinero depende de por dónde entró, así que la misma esquina lo manda para dos lados
+distintos. Si el paso de salida está bloqueado, se detiene en la esquina. El movimiento entre celdas
 es animado. Tiene que recoger las semillas de colores y pasar por las cruces del mismo color: al pasar,
 la cruz se convierte en la flor de ese color. Se gana cuando todas las cruces tienen su flor.
 
@@ -60,9 +61,9 @@ wollok test
 #### Agregar o cambiar un nivel
 
 Cada nivel es una instancia de la clase `Nivel` (`niveles/nivel.wlk`) que vive en `niveles/`. Sabe su
-número, cuántos segundos se consideran una vuelta perfecta, su estado (bloqueado o desbloqueado) y su
-`mapa`, que es un dibujo hecho con texto. El selector mantiene la lista de niveles desbloqueados, que
-empieza con el nivel 1:
+número, cuántos segundos se consideran una vuelta perfecta y su `mapa`, que es un dibujo hecho con
+texto. Un nivel no sabe si está desbloqueado: de eso lleva la cuenta el selector, con una lista que
+empieza con el nivel 1 y le va sumando los que se completan.
 
 | Letra | Qué es |
 |---|---|
@@ -73,13 +74,13 @@ empieza con el nivel 1:
 | `P` | piedra (bloquea el paso) |
 | `B` | charco de barro (se puede pisar, pero arruina la semilla) |
 | `X` | espinas (al pisarlas se pierde el nivel) |
-| `E` | escalera (frena el deslizamiento; parado en ella se sube y se baja de a un escalón) |
+| `E` | escalera (frena el deslizamiento; parado en ella se sube y se baja de a un escalón, y al salir de la última sigue de largo) |
 | `H` | agujero de topo (se entra por uno y se sale por el otro) |
 | `V` | piso de vidrio (aguanta una sola pasada: queda rajado y a la segunda se cae) |
-| `D` | rampa que gira a la derecha |
-| `I` | rampa que gira a la izquierda |
-| `T` | rampa superior derecha que gira a la izquierda |
-| `O` | rampa inferior derecha que gira a la izquierda |
+| `I` | esquina arriba-izquierda |
+| `D` | esquina arriba-derecha |
+| `T` | esquina abajo-izquierda |
+| `O` | esquina abajo-derecha |
 
 Todo lo que se pone en el tablero es una instancia de su clase, así que un mapa puede tener todas las
 que haga falta. Los agujeros de topo se emparejan **de a dos, en el orden en que aparecen en el mapa**:

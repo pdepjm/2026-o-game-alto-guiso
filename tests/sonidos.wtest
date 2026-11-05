@@ -62,3 +62,14 @@ describe "Configuración de sonido" {
     assert.equals(assetsManager.audioSilenciado(), indicador.image())
   }
 }
+
+// Wollok Game nunca suelta un sonido reproducido: queda en game.sounds y se manda al
+// navegador en cada frame. Por eso los efectos tienen un cupo, para que apretar teclas
+// durante toda una partida no vaya acumulando basura.
+describe "Los efectos no se acumulan" {
+
+  test "reproducir muchos efectos no deja mas de los permitidos dando vueltas" {
+    (1 .. 40).forEach({ n => sonidos.reproducirSonidoDeTecla() })
+    assert.equals(5, sonidos.efectosReproducidos().size())
+  }
+}

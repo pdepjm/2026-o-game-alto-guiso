@@ -49,13 +49,16 @@ class CharcoDeBarro inherits Bloque {
     }
 }
 
+// Desvía al jardinero como un espejo puesto en su diagonal. Tiene dos cosas, y están
+// separadas a propósito: la diagonal, que resuelve hacia dónde sale según por dónde
+// entró, y la madera que se dibuja, que es una de las cuatro mitades de celda posibles.
+// Dos maderas distintas pueden compartir la misma diagonal.
 class Esquina inherits Bloque {
-    const property giro
-
-    method image() = giro.imagen()
+    const property diagonal
+    const property image
 
     override method pisadoPor(jardinero) {
-        jardinero.girar(giro)
+        jardinero.desviarPor(diagonal)
     }
 }
 

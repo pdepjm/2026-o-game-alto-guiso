@@ -12,13 +12,16 @@ import niveles.mapa4.*
 import niveles.mapa5.*
 import juego.escalaTablero.*
 
-// El cartel de un nivel en el selector. Su imagen no es fija: se la pide al nivel,
-// que la cambia según esté bloqueado o desbloqueado.
+// El cartel de un nivel en el selector. Su imagen no es fija: depende de si el nivel
+// esta desbloqueado, y eso no lo sabe el nivel sino el selector, que es el que lleva
+// la cuenta del avance.
 class BotonDeNivel {
     const property position
     const nivel
 
-    method image() = nivel.imagenDelBoton()
+    method image() =
+        if (selectorDeNiveles.estaDesbloqueado(nivel)) assetsManager.botonDeNivel(nivel.numero())
+        else assetsManager.botonBloqueado(nivel.numero())
 }
 
 object selectorDeNiveles {
@@ -52,10 +55,12 @@ object selectorDeNiveles {
         game.removeVisual(botonVolver)
     }
 
+    method estaDesbloqueado(nivel) = nivelesDesbloqueados.contains(nivel)
+
     // Deja entrar solo a los niveles desbloqueados
     method presionarNivel(numero) {
         const elegido = niveles.get(numero - 1)
-        if (nivelesDesbloqueados.contains(elegido)) {
+        if (self.estaDesbloqueado(elegido)) {
             partida.jugar(elegido)
         }
     }
@@ -68,10 +73,7 @@ object selectorDeNiveles {
     }
 
     method desbloquear(nivel) {
-        if (!nivelesDesbloqueados.contains(nivel)) {
-            nivelesDesbloqueados.add(nivel)
-            nivel.desbloquear()
-        }
+        if (!self.estaDesbloqueado(nivel)) nivelesDesbloqueados.add(nivel)
     }
 
     method presionarJugar() {}

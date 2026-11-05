@@ -262,54 +262,28 @@ describe "Las esquinas del jardín" {
     assert.notThat(jardinero.estaDeslizando())
   }
 
-  test "cada orientación cambia entre los dos ejes para cualquier sentido de entrada" {
+  // Una esquina es un espejo puesto en su diagonal: hacia donde sale el jardinero
+  // depende de por donde entro. Por eso se prueban los cuatro sentidos de entrada.
+  method desviar(direccionDeEntrada, diagonal) {
     jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(arriba)
+    jardinero.mover(direccionDeEntrada)
     jardinero.frenar()
-    jardinero.girar(giroDerecha)
-    assert.equals(derecha, jardinero.direccion())
+    jardinero.desviarPor(diagonal)
+    return jardinero.direccion()
+  }
 
-    jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(abajo)
-    jardinero.frenar()
-    jardinero.girar(giroDerecha)
-    assert.equals(izquierda, jardinero.direccion())
+  test "la diagonal creciente intercambia derecha con arriba e izquierda con abajo" {
+    assert.equals(arriba, self.desviar(derecha, diagonalCreciente))
+    assert.equals(derecha, self.desviar(arriba, diagonalCreciente))
+    assert.equals(abajo, self.desviar(izquierda, diagonalCreciente))
+    assert.equals(izquierda, self.desviar(abajo, diagonalCreciente))
+  }
 
-    jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(izquierda)
-    jardinero.frenar()
-    jardinero.girar(giroDerecha)
-    assert.equals(arriba, jardinero.direccion())
-
-    jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(derecha)
-    jardinero.frenar()
-    jardinero.girar(giroDerecha)
-    assert.equals(abajo, jardinero.direccion())
-
-    jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(arriba)
-    jardinero.frenar()
-    jardinero.girar(giroIzquierda)
-    assert.equals(izquierda, jardinero.direccion())
-
-    jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(abajo)
-    jardinero.frenar()
-    jardinero.girar(giroIzquierda)
-    assert.equals(derecha, jardinero.direccion())
-
-    jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(izquierda)
-    jardinero.frenar()
-    jardinero.girar(giroIzquierda)
-    assert.equals(abajo, jardinero.direccion())
-
-    jardinero.empezarEn(game.at(100, 100))
-    jardinero.mover(derecha)
-    jardinero.frenar()
-    jardinero.girar(giroIzquierda)
-    assert.equals(arriba, jardinero.direccion())
+  test "la diagonal decreciente intercambia derecha con abajo e izquierda con arriba" {
+    assert.equals(abajo, self.desviar(derecha, diagonalDecreciente))
+    assert.equals(derecha, self.desviar(abajo, diagonalDecreciente))
+    assert.equals(arriba, self.desviar(izquierda, diagonalDecreciente))
+    assert.equals(izquierda, self.desviar(arriba, diagonalDecreciente))
   }
 }
 
@@ -327,18 +301,25 @@ describe "Las esquinas del mapa 3" {
     (1 .. 50).forEach({ paso => jardinero.avanzarUnPaso() })
   }
 
-  test "la esquina superior derecha cambia el eje y se detiene ante una pared" {
+  // Estas dos pruebas son el corazon del arreglo: es la MISMA esquina, y manda al
+  // jardinero para dos lados distintos segun por donde haya entrado.
+  test "la esquina de arriba a la derecha manda hacia abajo al que viene yendo a la derecha" {
     jardinero.empezarEn(escalaTablero.posicionCelda(15, 8))
     jardinero.mover(derecha)
     jardinero.avanzarUnPaso()
 
     assert.equals(escalaTablero.posicionCelda(16, 8), jardinero.position())
+    assert.equals(abajo, jardinero.direccion())
     assert.that(jardinero.estaDeslizando())
-    assert.equals(arriba, jardinero.direccion())
+  }
+
+  test "la misma esquina manda hacia la izquierda al que viene subiendo" {
+    jardinero.empezarEn(escalaTablero.posicionCelda(16, 7))
+    jardinero.mover(arriba)
     jardinero.avanzarUnPaso()
+
     assert.equals(escalaTablero.posicionCelda(16, 8), jardinero.position())
-    assert.equals(arriba, jardinero.direccion())
-    assert.notThat(jardinero.estaDeslizando())
+    assert.equals(izquierda, jardinero.direccion())
   }
 
   test "se pueden florecer todas las cruces siguiendo la ruta del mapa 3" {
@@ -635,5 +616,63 @@ describe "Los niveles nuevos se pueden ganar" {
     partida.mostrar()
     self.jugar([derecha, izquierda, abajo, izquierda, derecha, abajo, izquierda, arriba, derecha, izquierda, abajo, derecha])
     assert.that(partida.ganado())
+  }
+}
+
+// Tres escaleras apiladas y aire libre arriba de la última. Es el caso donde antes
+// quedaba el "bloque fantasma": el jardinero daba un paso de más y se frenaba solo,
+// como si hubiera algo ahí.
+const mapaConEscaleraSinTope = new Nivel(
+  numero = 98,
+  tiempoIdeal = 10,
+  mapa = [
+    "#######",
+    "#     #",
+    "#     #",
+    "#  E  #",
+    "#  E  #",
+    "#J E r#",
+    "#######"
+  ]
+)
+
+describe "La escalera cuando arriba no hay nada" {
+
+  method initialize() {
+    game.width(7 * escalaTablero.factor())
+    game.height(7 * escalaTablero.factor())
+    partida.nivel(mapaConEscaleraSinTope)
+    partida.mostrar()
+  }
+
+  method deslizar(direccion) {
+    jardinero.mover(direccion)
+    (1 .. 10).forEach({ paso => if (jardinero.estaDeslizando()) jardinero.avanzarUnPaso() })
+  }
+
+  test "sube escalon por escalon mientras haya escalera" {
+    self.deslizar(derecha)
+    assert.equals(escalaTablero.posicionCelda(3, 1), jardinero.position())
+
+    self.deslizar(arriba)
+    assert.equals(escalaTablero.posicionCelda(3, 2), jardinero.position())
+    assert.that(jardinero.estaEnEscalera())
+
+    self.deslizar(arriba)
+    assert.equals(escalaTablero.posicionCelda(3, 3), jardinero.position())
+    assert.that(jardinero.estaEnEscalera())
+  }
+
+  test "al salir de la ultima escalera sigue de largo hasta chocar, no se frena en el aire" {
+    self.deslizar(derecha)
+    self.deslizar(arriba)
+    self.deslizar(arriba)
+
+    // Un escalon mas: ya no hay escalera, asi que se baja y se desliza hasta la cerca
+    self.deslizar(arriba)
+
+    assert.equals(escalaTablero.posicionCelda(3, 5), jardinero.position())
+    assert.notThat(jardinero.estaEnEscalera())
+    assert.notThat(jardinero.estaDeslizando())
   }
 }

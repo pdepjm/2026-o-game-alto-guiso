@@ -1,5 +1,6 @@
 import wollok.game.*
 import juego.direcciones.*
+import juego.movimientos.*
 import juego.semillas.*
 import juego.partida.*
 import juego.escalaTablero.*
@@ -10,10 +11,11 @@ object jardinero {
     var posicionDestino = game.origin()
     var direccion = abajo
     var semillaEnMano = sinSemilla
-    var deslizando = false
     var framesTranscurridos = 0
-    // Mientras está parado en una escalera sube y baja de a un escalón, en vez de deslizarse
-    var enEscalera = false
+
+    // Cómo se está moviendo ahora: en el piso, en una escalera o deslizándose.
+    // Es a este objeto al que le delega qué hacer con cada flecha.
+    var estado = enElPiso
 
     const intervaloDeAnimacion = 16
 
@@ -21,8 +23,8 @@ object jardinero {
     method image() = direccion.imagenJardinero()
     method direccion() = direccion
     method semillaEnMano() = semillaEnMano
-    method estaDeslizando() = deslizando
-    method estaEnEscalera() = enEscalera
+    method estaDeslizando() = estado.estaDeslizando()
+    method estaEnEscalera() = estado.estaEnEscalera()
 
     method empezarEn(posicionInicial) {
         posicionLogica = posicionInicial
@@ -30,33 +32,36 @@ object jardinero {
         posicionDestino = posicionInicial
         direccion = abajo
         semillaEnMano = sinSemilla
-        deslizando = false
-        enEscalera = false
+        estado = enElPiso
         framesTranscurridos = 0
     }
 
+    // El jardinero no decide qué hacer con la flecha: se lo pregunta a su estado
     method mover(nuevaDireccion) {
-        if (!deslizando) {
-            direccion = nuevaDireccion
-            // En la escalera se sube y se baja de a un escalón; para los costados se baja
-            // de la escalera y vuelve a deslizarse hasta chocar, como siempre.
-            if (enEscalera && nuevaDireccion.esVertical()) self.subirUnEscalon()
-            else self.empezarADeslizar()
-        }
+        estado.mover(self, nuevaDireccion)
     }
 
-    method empezarADeslizar() {
-        deslizando = true
+    method empezarADeslizar(nuevaDireccion) {
+        direccion = nuevaDireccion
+        estado = deslizandose
         framesTranscurridos = 0
         game.onTick(intervaloDeAnimacion, "deslizar jardinero", { self.animarPaso() })
     }
 
-    method subirUnEscalon() {
+    // Un escalón por vez, mientras siga habiendo escalera
+    method subirUnEscalon(nuevaDireccion) {
+        direccion = nuevaDireccion
         const siguiente = direccion.siguiente(posicionLogica)
         if (partida.puedeEntrarA(siguiente)) {
+            // Deja la escalera en la que estaba. Si en la celda nueva hay otra, ella
+            // misma vuelve a subirlo al procesar la llegada.
+            estado = enElPiso
             posicionLogica = siguiente
             posicionVisual = siguiente
             self.procesarLlegada()
+            // Si del otro lado ya no había escalera, se bajó: sigue de largo hasta
+            // chocar, en vez de quedarse frenado en el aire.
+            if (!self.estaEnEscalera() && partida.enJuego()) self.empezarADeslizar(direccion)
         }
     }
 
@@ -73,11 +78,11 @@ object jardinero {
     }
 
     method animarPaso() {
-        if (deslizando && framesTranscurridos == 0) {
+        if (self.estaDeslizando() && framesTranscurridos == 0) {
             posicionDestino = direccion.siguiente(posicionLogica)
             if (!partida.puedeEntrarA(posicionDestino)) self.frenar()
         }
-        if (deslizando) {
+        if (self.estaDeslizando()) {
             posicionVisual = direccion.siguienteSubcelda(posicionVisual)
             framesTranscurridos += 1
             if (framesTranscurridos == escalaTablero.factor()) {
@@ -90,24 +95,21 @@ object jardinero {
     }
 
     method procesarLlegada() {
-        // Se baja de la escalera al llegar a una celda nueva; si en esa celda hay otra
-        // escalera, ella misma se encarga de volver a subirlo.
-        enEscalera = false
         partida.elementosEn(posicionLogica).forEach({ elemento => elemento.pisadoPor(self) })
         partida.verificarSiTermino()
     }
 
     method frenar() {
-        deslizando = false
+        estado = enElPiso
         framesTranscurridos = 0
         posicionVisual = posicionLogica
         game.removeTickEvent("deslizar jardinero")
     }
 
-    // Lo llama la escalera: se queda parado en ella hasta que el jugador decida
+    // Lo llama la escalera: lo frena y lo deja parado en ella hasta que el jugador decida
     method subirseAEscalera() {
-        enEscalera = true
         self.frenar()
+        estado = enLaEscalera
     }
 
     // Lo llama el agujero de topo: sale por el otro extremo del túnel sin cortar el
@@ -129,7 +131,9 @@ object jardinero {
 
     method plantarEn(cruz) { semillaEnMano.aplicarEn(cruz) }
 
-    method girar(giro) {
-        direccion = giro.aplicar(direccion)
+    // Lo llama la esquina, pasándole su diagonal: hacia dónde sale depende de por dónde
+    // venía, así que es la diagonal la que resuelve el rebote.
+    method desviarPor(diagonal) {
+        direccion = diagonal.cambiar(direccion)
     }
 }

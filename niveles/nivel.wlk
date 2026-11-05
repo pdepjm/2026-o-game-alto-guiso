@@ -1,27 +1,14 @@
-import utils.manager.*
-
-object nivelBloqueado {
-    method imagenDelBoton(nivel) = assetsManager.botonBloqueado(nivel.numero())
-    method siguienteEstado() = nivelDesbloqueado
-}
-
-object nivelDesbloqueado {
-    method imagenDelBoton(nivel) = assetsManager.botonDeNivel(nivel.numero())
-    method siguienteEstado() = self
-}
-
-// Un nivel del juego: su dibujo, si ya está desbloqueado y cuánto tiempo se considera "rápido".
+// Un nivel del juego: su número, su dibujo y cuánto tiempo se considera "rápido".
 // Todos los niveles se comportan igual, por eso son instancias de una misma clase.
+//
+// Un nivel no sabe si está desbloqueado, y es a propósito: eso no es una característica
+// suya sino del avance de la partida. La lista de los desbloqueados la tiene el selector,
+// que es quien lleva la cuenta de hasta dónde llegó el jugador.
 class Nivel {
     const property numero
     const property mapa
     // Segundos que se consideran una vuelta perfecta. De acá salen las notas.
     const property tiempoIdeal
-    var property estado = nivelBloqueado
-
-    method imagenDelBoton() = estado.imagenDelBoton(self)
-
-    method desbloquear() { estado = estado.siguienteEstado() }
 
     // S si lo hizo en el tiempo ideal, y va bajando a medida que tarda más
     method notaPara(segundos) =
