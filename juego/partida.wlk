@@ -147,7 +147,10 @@ object partida {
 
     // Índice por posición para evitar recorrer todos los elementos en cada movimiento.
     var elementosPorPosicion = new Dictionary()
-    var ubicadoresMapa = new Dictionary()
+    // Que poner por cada letra del mapa. Se arma una sola vez, al arrancar el juego.
+    const ubicadoresMapa = new Dictionary()
+
+    method initialize() { self.configurarUbicadoresMapa() }
 
     // Los agujeros de topo se emparejan de a dos en el orden en que aparecen en el mapa.
     // Acá queda el que todavía está esperando su pareja (ninguno o uno).
@@ -180,7 +183,6 @@ object partida {
         cruces.clear()
         agujerosSinPareja.clear()
         estado = jugando
-        self.configurarUbicadoresMapa()
         
         const filas = nivel.mapa()
         const alto = filas.size()
@@ -199,7 +201,6 @@ object partida {
     }
 
     method configurarUbicadoresMapa() {
-        ubicadoresMapa = new Dictionary()
         ubicadoresMapa.put("#", ubicadorDeValla)
         ubicadoresMapa.put("P", ubicadorDePiedra)
         ubicadoresMapa.put("B", ubicadorDeBarro)

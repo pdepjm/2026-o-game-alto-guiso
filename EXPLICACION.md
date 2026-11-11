@@ -109,7 +109,16 @@ El mapa es una lista de strings. Cada carácter representa algo:
 
 `partida.armar()` calcula el tamaño del mapa, lo centra dentro del tablero y recorre cada fila y columna. Para cada carácter llama a `ubicar(letra, posicion)`, que decide qué objeto debe configurarse en esa celda.
 
-Por cada carácter se crea el elemento que corresponde con `new`: `new Valla(...)` para un `#`, `new Cruz(...)` para una cruz, `new Espinas(...)`, `new Escalera(...)`, `new Vidrio(...)` y así con el resto. Las semillas no se crean: ya existen las tres y solo se les cambia la posición.
+`ubicar` **no compara la letra**: la busca en un diccionario. Cada letra tiene asociado un
+**ubicador**, un objeto que sabe qué poner en esa celda —`ubicadorDeValla` hace `new Valla(...)`,
+`ubicadorDeAgujero` llama a `ponerAgujero`, y así—. Si la letra no está en el diccionario,
+`getOrElse` devuelve `ubicadorVacio`, que no hace nada: por eso los espacios del mapa no necesitan
+ningún caso especial.
+
+Antes esto eran dieciocho `if` seguidos comparando la letra, uno por cada cosa que puede haber en el
+tablero. El diccionario se arma una sola vez, en el `initialize()` de `partida`.
+
+Las semillas no se crean: ya existen las tres y solo se les cambia la posición.
 
 Los agujeros de topo son el único caso que necesita algo más: se emparejan de a dos en el orden en que aparecen en el mapa. `partida` guarda en `agujerosSinPareja` el que todavía está esperando, y cuando aparece el siguiente los conecta entre sí.
 
@@ -373,6 +382,21 @@ La lista `niveles` mantiene la relación entre el número elegido y el nivel que
 `desbloquearSiguienteA(nivel)` es lo que corre al ganar: busca con `filter` el nivel cuyo número es uno más que el recién completado y lo agrega a `nivelesDesbloqueados`. Si no existe —por ejemplo al ganar el último— el filter no encuentra nada y no pasa nada.
 
 Esa lista es el **único lugar** donde vive el avance del jugador. El cartel de cada nivel (`BotonDeNivel`) tampoco lo sabe por su cuenta: le pregunta al selector con `estaDesbloqueado(nivel)` y según eso elige entre el cartel de madera y el gris con candado.
+
+### `pantallas/configuracion.wlk`
+
+La pantalla de sonido: dos barras de diez segmentos (general y ambiente) y dos indicadores de
+encendido/silencio.
+
+Lo importante del diseño está en `canalGeneral` y `canalAmbiente`. Antes los segmentos recibían el
+nombre del canal como texto y lo comparaban (`if (canal == "general")`), que es justamente lo que hay
+que evitar: comparar un string para decidir comportamiento. Ahora **cada canal es un objeto** que sabe
+responder por lo suyo —si está silenciado, si un segmento está encendido, y cómo alternar su
+silencio— así que ni el segmento ni el indicador tienen que preguntar de cuál se trata.
+
+Las teclas `1` y `2` tampoco se comparan: hay un diccionario `canalesPorTecla` que las asocia a su
+canal, con `sinCanal` como respuesta para cualquier otra tecla. Es el mismo recurso que usa el mapa
+con sus letras.
 
 ### `pantallas/navegador.wlk`
 
