@@ -52,14 +52,16 @@ describe "Configuración de sonido" {
   }
 
   test "la configuración muestra el indicador de mute y las barras de volumen" {
-    const indicador = new IndicadorDeSilencio(canal = "general", position = game.origin())
-    const segmento = new SegmentoVolumen(canal = "general", indice = 1, position = game.origin())
+    const indicador = new IndicadorDeSilencio(canal = canalGeneral, position = game.origin())
+    const segmento = new SegmentoVolumen(canal = canalGeneral, indice = 1, position = game.origin())
 
     assert.equals(assetsManager.audioActivo(), indicador.image())
     assert.that(segmento.estaActivo())
 
     sonidos.alternarSilencioGeneral()
     assert.equals(assetsManager.audioSilenciado(), indicador.image())
+    assert.that(canalGeneral.estaSilenciado())
+    assert.notThat(canalAmbiente.estaSilenciado())
   }
 }
 

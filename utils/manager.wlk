@@ -1,7 +1,7 @@
 // Único lugar donde están los nombres de las imágenes.
 // El nombre incluye la subcarpeta dentro de assets, por ejemplo "Semillas/red_seed.png".
 object assetsManager {
-    method fondoMenu() = "Fondos/fondoMenu1.png"
+    method fondoMenu() = "Fondos/fondoMenu_pulido.png"
     method fondoCesped() = "Fondos/grass.png"
     method botonJugar() = "UI/boton_jugar.png"
     method botonConfiguracion() = "UI/boton_configuracion.png"
@@ -14,6 +14,7 @@ object assetsManager {
     method cartelVictoria() = "UI/cartel_victoria.png"
     method cartelDerrotaEspinas() = "UI/cartel_derrota_espinas.png"
     method cartelDerrotaVidrio() = "UI/cartel_derrota_vidrio.png"
+    method capaFinPartida() = "UI/capa_fin_partida.png"
     method tituloDelJuego() = "UI/titulo.png"
 
     // Las teclas de cada pantalla y el cronometro vienen con el texto dibujado adentro,

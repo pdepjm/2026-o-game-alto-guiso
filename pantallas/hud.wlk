@@ -19,6 +19,11 @@ object barraDeTeclas {
     method image() = navegador.actual().imagenDeTeclas()
 }
 
+object capaDeFinDePartida {
+    method position() = game.origin()
+    method image() = assetsManager.capaFinPartida()
+}
+
 // Cuenta los segundos que lleva el nivel. Lo arranca y lo para la partida.
 object cronometro {
     var property segundos = 0

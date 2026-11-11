@@ -67,6 +67,70 @@ object perdida {
     method perder(partida, culpable) {}
     method presionarSiguiente(partida) {}
 }
+
+object ubicadorVacio {
+    method ubicar(partida, posicion) {}
+}
+
+object ubicadorDeValla {
+    method ubicar(partida, posicion) { partida.agregar(new Valla(position = posicion)) }
+}
+
+object ubicadorDePiedra {
+    method ubicar(partida, posicion) { partida.agregar(new Piedra(position = posicion)) }
+}
+
+object ubicadorDeBarro {
+    method ubicar(partida, posicion) { partida.agregar(new CharcoDeBarro(position = posicion)) }
+}
+
+object ubicadorDeEspinas {
+    method ubicar(partida, posicion) { partida.agregar(new Espinas(position = posicion)) }
+}
+
+object ubicadorDeEscalera {
+    method ubicar(partida, posicion) { partida.agregar(new Escalera(position = posicion)) }
+}
+
+object ubicadorDeVidrio {
+    method ubicar(partida, posicion) { partida.agregar(new Vidrio(position = posicion)) }
+}
+
+object ubicadorDeAgujero {
+    method ubicar(partida, posicion) { partida.ponerAgujero(posicion) }
+}
+
+object ubicadorDeJardinero {
+    method ubicar(partida, posicion) { jardinero.empezarEn(posicion) }
+}
+
+object ubicadorDeSemillaRoja {
+    method ubicar(partida, posicion) { partida.ponerSemilla(semillaRoja, posicion) }
+}
+
+object ubicadorDeSemillaAzul {
+    method ubicar(partida, posicion) { partida.ponerSemilla(semillaAzul, posicion) }
+}
+
+object ubicadorDeSemillaAmarilla {
+    method ubicar(partida, posicion) { partida.ponerSemilla(semillaAmarilla, posicion) }
+}
+
+class UbicadorDeEsquina {
+    const property diagonal
+    const property image
+
+    method ubicar(partida, posicion) {
+        partida.agregar(new Esquina(position = posicion, diagonal = diagonal, image = image))
+    }
+}
+
+class UbicadorDeCruz {
+    const property semilla
+
+    method ubicar(partida, posicion) { partida.ponerCruz(semilla, posicion) }
+}
+
 object partida {
     var nivel = mapa1
     // En qué está: jugando, ganada o perdida. A él le delega lo que cambia según eso.
@@ -83,10 +147,7 @@ object partida {
 
     // Índice por posición para evitar recorrer todos los elementos en cada movimiento.
     var elementosPorPosicion = new Dictionary()
-
-    // Las tres semillas del juego. Es una sola lista para que ubicar() pueda preguntarle
-    // a cada una si la letra del mapa es la suya, sin tener un if por color.
-    const semillas = [semillaRoja, semillaAzul, semillaAmarilla]
+    var ubicadoresMapa = new Dictionary()
 
     // Los agujeros de topo se emparejan de a dos en el orden en que aparecen en el mapa.
     // Acá queda el que todavía está esperando su pareja (ninguno o uno).
@@ -119,6 +180,7 @@ object partida {
         cruces.clear()
         agujerosSinPareja.clear()
         estado = jugando
+        self.configurarUbicadoresMapa()
         
         const filas = nivel.mapa()
         const alto = filas.size()
@@ -136,24 +198,30 @@ object partida {
         })
     }
 
-    method ubicar(letra, posicion) {
-        if (letra == "#") self.agregar(new Valla(position = posicion))
-        if (letra == "P") self.agregar(new Piedra(position = posicion))
-        if (letra == "B") self.agregar(new CharcoDeBarro(position = posicion))
-        if (letra == "X") self.agregar(new Espinas(position = posicion))
-        if (letra == "E") self.agregar(new Escalera(position = posicion))
-        if (letra == "V") self.agregar(new Vidrio(position = posicion))
-        if (letra == "H") self.ponerAgujero(posicion)
-        // Las cuatro esquinas son las cuatro mitades de celda. Las que comparten diagonal
-        // desvían igual: lo que cambia entre ellas es la madera que se dibuja.
-        if (letra == "I") self.agregar(new Esquina(position = posicion, diagonal = diagonalCreciente, image = assetsManager.rampaArribaIzquierda()))
-        if (letra == "O") self.agregar(new Esquina(position = posicion, diagonal = diagonalCreciente, image = assetsManager.rampaAbajoDerecha()))
-        if (letra == "D") self.agregar(new Esquina(position = posicion, diagonal = diagonalDecreciente, image = assetsManager.rampaArribaDerecha()))
-        if (letra == "T") self.agregar(new Esquina(position = posicion, diagonal = diagonalDecreciente, image = assetsManager.rampaAbajoIzquierda()))
-        if (letra == "J") jardinero.empezarEn(posicion)
+    method configurarUbicadoresMapa() {
+        ubicadoresMapa = new Dictionary()
+        ubicadoresMapa.put("#", ubicadorDeValla)
+        ubicadoresMapa.put("P", ubicadorDePiedra)
+        ubicadoresMapa.put("B", ubicadorDeBarro)
+        ubicadoresMapa.put("X", ubicadorDeEspinas)
+        ubicadoresMapa.put("E", ubicadorDeEscalera)
+        ubicadoresMapa.put("V", ubicadorDeVidrio)
+        ubicadoresMapa.put("H", ubicadorDeAgujero)
+        ubicadoresMapa.put("I", new UbicadorDeEsquina(diagonal = diagonalCreciente, image = assetsManager.rampaArribaIzquierda()))
+        ubicadoresMapa.put("O", new UbicadorDeEsquina(diagonal = diagonalCreciente, image = assetsManager.rampaAbajoDerecha()))
+        ubicadoresMapa.put("D", new UbicadorDeEsquina(diagonal = diagonalDecreciente, image = assetsManager.rampaArribaDerecha()))
+        ubicadoresMapa.put("T", new UbicadorDeEsquina(diagonal = diagonalDecreciente, image = assetsManager.rampaAbajoIzquierda()))
+        ubicadoresMapa.put("J", ubicadorDeJardinero)
+        ubicadoresMapa.put("R", ubicadorDeSemillaRoja)
+        ubicadoresMapa.put("A", ubicadorDeSemillaAzul)
+        ubicadoresMapa.put("M", ubicadorDeSemillaAmarilla)
+        ubicadoresMapa.put("r", new UbicadorDeCruz(semilla = semillaRoja))
+        ubicadoresMapa.put("a", new UbicadorDeCruz(semilla = semillaAzul))
+        ubicadoresMapa.put("m", new UbicadorDeCruz(semilla = semillaAmarilla))
+    }
 
-        semillas.filter({ semilla => semilla.letra() == letra }).forEach({ semilla => self.ponerSemilla(semilla, posicion) })
-        semillas.filter({ semilla => semilla.letraCruz() == letra }).forEach({ semilla => self.ponerCruz(semilla, posicion) })
+    method ubicar(letra, posicion) {
+        ubicadoresMapa.getOrElse(letra, { => ubicadorVacio }).ubicar(self, posicion)
     }
 
     method agregar(elemento) {
@@ -207,7 +275,9 @@ object partida {
     }
 
     method mostrarCartel() {
+        game.addVisual(capaDeFinDePartida)
         cartelDeVictoria.mostrar(self.nota())
+        navegador.mostrarBarraDeTeclas()
     }
 
     // Lo llama el jardinero cuando lo mata algun bloque. Si el nivel ya habia terminado,
@@ -220,7 +290,9 @@ object partida {
         estado = perdida
         jardinero.frenar()
         cronometro.parar()
+        game.addVisual(capaDeFinDePartida)
         cartelDeDerrota.mostrar(culpable.imagenDeDerrota())
+        navegador.mostrarBarraDeTeclas()
     }
 
     method nota() = nivel.notaPara(cronometro.segundos())
@@ -245,6 +317,7 @@ object partida {
         relojDePantalla.ocultar()
         cartelDeVictoria.ocultar()
         cartelDeDerrota.ocultar()
+        if (game.hasVisual(capaDeFinDePartida)) game.removeVisual(capaDeFinDePartida)
     }
 
     method presionarDireccion(direccion) { estado.presionarDireccion(self, direccion) }

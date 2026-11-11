@@ -119,6 +119,7 @@ describe "El jardinero en el jardín" {
     self.deslizar(abajo)
     self.deslizar(derecha)
     assert.that(partida.ganado())
+    assert.that(game.hasVisual(capaDeFinDePartida))
   }
 
   test "una vez ganado, el jardinero no se mueve más" {
@@ -137,6 +138,7 @@ describe "El jardinero en el jardín" {
     assert.equals(escalaTablero.posicionCelda(1, 3), jardinero.position())
     assert.equals(sinSemilla, jardinero.semillaEnMano())
     assert.notThat(self.cruzRoja().florecida())
+    assert.notThat(game.hasVisual(capaDeFinDePartida))
   }
 }
 
@@ -436,6 +438,7 @@ describe "Las espinas" {
   test "al perder aparece el cartel de derrota" {
     self.deslizar(derecha)
     assert.that(game.hasVisual(cartelDeDerrota))
+    assert.that(game.hasVisual(capaDeFinDePartida))
   }
 
   test "una vez perdido, las flechas no mueven al jardinero" {
