@@ -1,0 +1,77 @@
+import utils.sonidos.*
+import juego.escalaTablero.*
+import pantallas.configuracion.*
+import utils.manager.*
+
+describe "Configuración de sonido" {
+
+  method initialize() {
+    game.width(21 * escalaTablero.factor())
+    game.height(12 * escalaTablero.factor())
+    sonidos.restablecerConfiguracion()
+  }
+
+  test "el volumen general afecta los efectos y el ambiente" {
+    sonidos.bajarVolumenGeneral()
+
+    assert.that(sonidos.volumenGeneral() < 1)
+    assert.that(sonidos.volumenAmbienteEfectivo() < 0.25)
+    assert.that(sonidos.volumenEfectos() > 0)
+  }
+
+  test "silenciar solo el ambiente deja activos los efectos" {
+    sonidos.alternarSilencioAmbiente()
+
+    assert.equals(0, sonidos.volumenAmbienteEfectivo())
+    assert.equals(1, sonidos.volumenEfectos())
+    assert.that(sonidos.estaSilenciadoAmbiente())
+    assert.notThat(sonidos.estaSilenciadoGeneral())
+  }
+
+  test "silenciar el volumen general afecta todos los sonidos" {
+    sonidos.alternarSilencioGeneral()
+
+    assert.equals(0, sonidos.volumenAmbienteEfectivo())
+    assert.equals(0, sonidos.volumenEfectos())
+  }
+
+  test "los controles de configuración cambian los volúmenes independientes" {
+    configuracion.presionarJugar()
+    configuracion.presionarSiguiente()
+
+    assert.that(sonidos.volumenGeneral() < 1)
+    assert.that(sonidos.volumenAmbiente() > 0.25)
+  }
+
+  test "los niveles de volumen no salen del rango permitido" {
+    (1..12).forEach({ paso => sonidos.bajarVolumenGeneral() })
+    assert.equals(0, sonidos.volumenGeneral())
+
+    (1..12).forEach({ paso => sonidos.subirVolumenGeneral() })
+    assert.equals(1, sonidos.volumenGeneral())
+  }
+
+  test "la configuración muestra el indicador de mute y las barras de volumen" {
+    const indicador = new IndicadorDeSilencio(canal = canalGeneral, position = game.origin())
+    const segmento = new SegmentoVolumen(canal = canalGeneral, indice = 1, position = game.origin())
+
+    assert.equals(assetsManager.audioActivo(), indicador.image())
+    assert.that(segmento.estaActivo())
+
+    sonidos.alternarSilencioGeneral()
+    assert.equals(assetsManager.audioSilenciado(), indicador.image())
+    assert.that(canalGeneral.estaSilenciado())
+    assert.notThat(canalAmbiente.estaSilenciado())
+  }
+}
+
+// Wollok Game nunca suelta un sonido reproducido: queda en game.sounds y se manda al
+// navegador en cada frame. Por eso los efectos tienen un cupo, para que apretar teclas
+// durante toda una partida no vaya acumulando basura.
+describe "Los efectos no se acumulan" {
+
+  test "reproducir muchos efectos no deja mas de los permitidos dando vueltas" {
+    (1 .. 40).forEach({ n => sonidos.reproducirSonidoDeTecla() })
+    assert.equals(5, sonidos.efectosReproducidos().size())
+  }
+}

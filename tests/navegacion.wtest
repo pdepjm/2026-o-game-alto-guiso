@@ -1,0 +1,175 @@
+import wollok.game.*
+import pantallas.navegador.*
+import pantallas.menuPrincipal.*
+import pantallas.configuracion.*
+import pantallas.hud.*
+import pantallas.selectorDeNiveles.*
+import juego.partida.*
+import niveles.mapa1.*
+import niveles.mapa2.*
+import niveles.mapa3.*
+import niveles.mapa4.*
+import niveles.mapa5.*
+import niveles.nivel.*
+import juego.jardinero.*
+import juego.bloques.*
+import juego.manoDelJardinero.*
+import juego.direcciones.*
+import juego.escalaTablero.*
+import utils.manager.*
+
+describe "Navegación entre pantallas" {
+
+  method initialize() {
+    game.width(21 * escalaTablero.factor())
+    game.height(12 * escalaTablero.factor())
+    navegador.iniciar()
+  }
+
+  test "el juego arranca en el menú principal" {
+    assert.equals(menuPrincipal, navegador.actual())
+  }
+
+  test "desde el menú, J lleva al selector de niveles" {
+    navegador.actual().presionarJugar()
+    assert.equals(selectorDeNiveles, navegador.actual())
+  }
+
+  test "en el menú las flechas no hacen nada" {
+    navegador.actual().presionarDireccion(derecha)
+    assert.notThat(jardinero.estaDeslizando())
+  }
+
+  test "desde el selector se elige el nivel con su número" {
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(1)
+    assert.equals(partida, navegador.actual())
+    assert.equals(mapa1, partida.nivel())
+  }
+
+  test "el nivel 2 arranca bloqueado y no se puede entrar" {
+    assert.notThat(selectorDeNiveles.estaDesbloqueado(mapa2))
+    assert.notThat(selectorDeNiveles.nivelesDesbloqueados().contains(mapa2))
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(2)
+    assert.equals(selectorDeNiveles, navegador.actual())
+  }
+
+  test "al completar un nivel se desbloquea el siguiente" {
+    selectorDeNiveles.desbloquearSiguienteA(mapa1)
+    assert.that(selectorDeNiveles.nivelesDesbloqueados().contains(mapa2))
+    assert.that(selectorDeNiveles.estaDesbloqueado(mapa2))
+  }
+
+  test "una vez desbloqueado, se puede entrar al nivel 2" {
+    selectorDeNiveles.desbloquear(mapa2)
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(2)
+    assert.equals(mapa2, partida.nivel())
+  }
+
+  test "desde el selector se elige el mapa 3 con la tecla 3" {
+    selectorDeNiveles.desbloquear(mapa3)
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(3)
+    assert.equals(partida, navegador.actual())
+    assert.equals(mapa3, partida.nivel())
+    assert.equals(6, partida.cruces().size())
+  }
+
+  test "desde un nivel, V vuelve al selector y saca el nivel de la pantalla" {
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(1)
+    navegador.actual().presionarVolver()
+    assert.equals(selectorDeNiveles, navegador.actual())
+    assert.notThat(game.hasVisual(jardinero))
+  }
+
+  test "desde el selector, V vuelve al menú" {
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarVolver()
+    assert.equals(menuPrincipal, navegador.actual())
+  }
+
+  test "desde el menú, C abre configuración y V vuelve al menú" {
+    menuPrincipal.presionarConfiguracion()
+    assert.equals(configuracion, navegador.actual())
+    assert.equals(assetsManager.teclasDeConfiguracion(), configuracion.imagenDeTeclas())
+    configuracion.presionarVolver()
+    assert.equals(menuPrincipal, navegador.actual())
+  }
+
+  test "al ganar un nivel, N inicia el siguiente nivel" {
+    partida.jugar(mapa1)
+    partida.terminarGanando()
+    assert.equals(assetsManager.teclasDeVictoria(), partida.imagenDeTeclas())
+    partida.presionarSiguiente()
+    assert.equals(mapa2, partida.nivel())
+    assert.equals(partida, navegador.actual())
+  }
+
+  test "al pasar al siguiente nivel se limpian los objetos del nivel anterior" {
+    selectorDeNiveles.desbloquear(mapa2)
+    partida.jugar(mapa1)
+    const objetosAnteriores = []
+    partida.elementos().forEach({ elemento => objetosAnteriores.add(elemento) })
+
+    partida.terminarGanando()
+    partida.presionarSiguiente()
+
+    partida.elementos().forEach({ elemento => assert.that(game.hasVisual(elemento)) })
+    objetosAnteriores
+      .filter({ anterior => !partida.elementos().contains(anterior) })
+      .forEach({ anterior => assert.notThat(game.hasVisual(anterior)) })
+    assert.notThat(game.hasVisual(cartelDeVictoria))
+    assert.that(game.hasVisual(jardinero))
+    assert.that(game.hasVisual(manoDelJardinero))
+  }
+
+  // Garantía que da el estado: una vez que el nivel terminó, lo que llegue tarde se ignora
+  test "una vez ganado el nivel ya no se puede perder" {
+    partida.jugar(mapa1)
+    partida.terminarGanando()
+
+    partida.perder(new Espinas(position = game.origin()))
+
+    assert.that(partida.ganado())
+    assert.notThat(partida.perdido())
+  }
+
+  test "al ganar el último nivel no hay un nivel siguiente" {
+    partida.jugar(mapa5)
+    partida.terminarGanando()
+    assert.equals(assetsManager.teclasDeVictoriaFinal(), partida.imagenDeTeclas())
+    partida.presionarSiguiente()
+    assert.equals(mapa5, partida.nivel())
+  }
+
+  test "cada nivel usa la cantidad de cruces de su mapa" {
+    selectorDeNiveles.desbloquear(mapa2)
+    navegador.actual().presionarJugar()
+    navegador.actual().presionarNivel(1)
+    assert.equals(2, partida.cruces().size())
+    navegador.actual().presionarVolver()
+    navegador.actual().presionarNivel(2)
+    assert.equals(6, partida.cruces().size())
+    navegador.actual().presionarVolver()
+    selectorDeNiveles.desbloquear(mapa3)
+    navegador.actual().presionarNivel(3)
+    assert.equals(6, partida.cruces().size())
+  }
+
+  test "los cinco niveles estan en el selector y solo el primero arranca abierto" {
+    assert.equals(5, selectorDeNiveles.niveles().size())
+    assert.that(selectorDeNiveles.nivelesDesbloqueados().contains(mapa1))
+    assert.that(selectorDeNiveles.estaDesbloqueado(mapa1))
+    assert.notThat(selectorDeNiveles.nivelesDesbloqueados().contains(mapa4))
+    assert.notThat(selectorDeNiveles.nivelesDesbloqueados().contains(mapa5))
+  }
+
+  test "al completar el nivel 4 se desbloquea el 5" {
+    selectorDeNiveles.desbloquearSiguienteA(mapa4)
+    assert.that(selectorDeNiveles.nivelesDesbloqueados().contains(mapa5))
+    assert.that(selectorDeNiveles.estaDesbloqueado(mapa5))
+  }
+}

@@ -1,0 +1,7 @@
+import main.*
+
+
+// ESTO SIRVE PARA PODER CORRER EL JUEGO MAS SIMPLE Y SIN COMANDOS
+program florDeQuilombo {
+  main.iniciar()
+}
