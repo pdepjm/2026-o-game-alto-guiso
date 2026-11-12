@@ -6,6 +6,9 @@
 * Joaquin Zimerman
 * Tobias Charap
 
+### PRESENTACION
+https://docs.google.com/presentation/d/1FpM8VPBo9jYAK-xixfaHnHM2eYgiKtBH/edit?usp=sharing&ouid=100542017598043669543&rtpof=true&sd=true
+
 #### El juego
 
 Un jardinero recorre el jardín para plantar flores. Una vez que arranca en una dirección no frena hasta
